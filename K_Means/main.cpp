@@ -55,21 +55,36 @@ int main(int argc, char **argv)
   */
   /* Declare centroids and index vector containing cluster labels */
   arma::Mat<double> centroids(K, D);
+  arma::Mat<double> bestCentroids(K,D);
   arma::Mat<double> initial_centroids(K, D);
   arma::Col<arma::uword> idx(N);
-  
-  double currentCost nextCost;
+  arma::Col<arma::uword> bestIdx(N);
+  double currentCost, bestCost;
+
   /* Set maximum number of iterations */
   arma::uword max_iter = 20;
-  
-  // Pick some random examples as initial centroids
-  initial_centroids = kMeansInitCentroids(X, K);
-  
-  // Run K-Means algorithm
+  arma::uword num_runs = 20;
 
-  centroids = runkMeans(X, idx, initial_centroids, max_iter, currentCost);
-  std::cout << "K-Means Done." << std::endl;
+  for (arma::uword run = 0; run < num_runs; ++run) {
+    std::cout << "RUN " << run + 1 << "/" << num_runs << std::endl;
+    // Pick some random examples as initial centroids
+    initial_centroids = kMeansInitCentroids(X, K);
   
+    // Run K-Means algorithm
+    if (run == 0) {
+      bestCentroids = runkMeans(X, bestIdx, initial_centroids, max_iter, bestCost);
+    } else {
+      centroids = runkMeans(X, idx, initial_centroids, max_iter, currentCost);
+      if (currentCost < bestCost) {
+        bestCost = currentCost;
+        bestCentroids = centroids;
+        bestIdx = idx;
+      }
+    }
+  }
+
+  std::cout << "K-Means Done." << std::endl;
+  std::cout << "Best local optimum had a cost of " << bestCost << std::endl;
   /*// DEBUG
   if (N == X.n_rows)
     std::cout << "So far so good" << std::endl;
@@ -80,8 +95,8 @@ int main(int argc, char **argv)
   // A) Save toycluster output
   char centroidsFile[] = "../data_files/toyclusters/centroids.out";
   char idxFile[] = "../data_files/toyclusters/idx.out";
-  centroids.save(centroidsFile, arma::raw_ascii);
-  idx.save(idxFile, arma::raw_ascii);
+  bestCentroids.save(centroidsFile, arma::raw_ascii);
+  bestIdx.save(idxFile, arma::raw_ascii);
   
 
   /*// B) Compress lenna into K colours
