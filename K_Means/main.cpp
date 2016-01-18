@@ -25,12 +25,12 @@ int main(int argc, char **argv)
   arma::Mat<double> X;
   const arma::uword K = num_clusters;
 
-  /* // A) Toycluster Data
-     X.load("data_files/toyclusters/toyclusters.dat");
-     const arma::uword N = X.n_rows; // N = #examples
-     const arma::uword D = X.n_cols; // D = #features
-  */
-  
+  // A) Toycluster Data
+  char filename[] = "../data_files/toyclusters/toyclusters.dat";
+  X.load(filename);
+  const arma::uword N = X.n_rows; // N = #examples
+  const arma::uword D = X.n_cols; // D = #features
+    
   /*// B) Image Data: Lenna (256x256 pixels unrolled into rows, RGB values in columns)
   X.load("data_files/lenna/lenna_256x256x3.dat");
   arma::Col<arma::uword> imSize(3);
@@ -39,24 +39,26 @@ int main(int argc, char **argv)
   const arma::uword D = imSize(2);
   */
 
-  // C) Image Data: fiona.jpg (2448x3264x3)
+  /*// C) Image Data: fiona.jpg (2448x3264x3)
   X.load("data_files/fiona/fiona_2448x3264x3.dat");
   arma::Col<arma::uword> imSize(3);
   imSize << 2448 << 3264 << 3;
   const arma::uword N = imSize(0) * imSize(1);
   const arma::uword D = imSize(2);
- 
+  */
+  /*
   // DEBUG
   if (N == X.n_rows)
     std::cout << "So far so good" << std::endl;
   else
     std::cout << "Something is wrong. N = " << N << " and n_rows = " << X.n_rows << std::endl;
-
+  */
   /* Declare centroids and index vector containing cluster labels */
   arma::Mat<double> centroids(K, D);
   arma::Mat<double> initial_centroids(K, D);
   arma::Col<arma::uword> idx(N);
   
+  double currentCost nextCost;
   /* Set maximum number of iterations */
   arma::uword max_iter = 20;
   
@@ -64,34 +66,38 @@ int main(int argc, char **argv)
   initial_centroids = kMeansInitCentroids(X, K);
   
   // Run K-Means algorithm
-  centroids = runkMeans(X, idx, initial_centroids, max_iter);
+
+  centroids = runkMeans(X, idx, initial_centroids, max_iter, currentCost);
   std::cout << "K-Means Done." << std::endl;
   
-  // DEBUG
+  /*// DEBUG
   if (N == X.n_rows)
     std::cout << "So far so good" << std::endl;
   else
     std::cout << "Something is wrong. N = " << N << " and n_rows = " << X.n_rows << std::endl;
-
-  /* // A) Save toycluster output 
-     centroids.save("data_files/toyclusters/centroids.out", arma::raw_ascii);
-     idx.save("data_files/toyclusters/idx.out", arma::raw_ascii);
   */
+
+  // A) Save toycluster output
+  char centroidsFile[] = "../data_files/toyclusters/centroids.out";
+  char idxFile[] = "../data_files/toyclusters/idx.out";
+  centroids.save(centroidsFile, arma::raw_ascii);
+  idx.save(idxFile, arma::raw_ascii);
   
-  // B) Compress lenna into K colours
+
+  /*// B) Compress lenna into K colours
   arma::Mat<double> X_compressed(X.n_rows, X.n_cols);
   for (arma::uword k = 0; k != K; ++k) {
-    arma::Col<arma::uword> indices = find(idx == k);
-    X_compressed.each_row(indices) = centroids.row(k);
+  arma::Col<arma::uword> indices = find(idx == k);
+  X_compressed.each_row(indices) = centroids.row(k);
   }
-  
+  */
   /*
   // B) Save lenna output data
   X_compressed.save("data_files/lenna/lenna.out", arma::raw_ascii); 
   centroids.save("data_files/lenna/centroids.out", arma::raw_ascii);
   idx.save("data_files/lenna/idx.out", arma::raw_ascii);
   */
-  
+  /*
   // DEBUG
   if (N == X_compressed.n_rows)
     std::cout << "So far so good" << std::endl;
@@ -117,7 +123,7 @@ int main(int argc, char **argv)
     std::cout << "Failed to open file for X_compressed or idx" << std::endl;
   outFile_comp.close();
   outFile_idx.close();
-
+  
   std::ofstream outFile_centroids("data_files/fiona/centroids.out");
   if (outFile_centroids.good()) {
     std::cout << "File open successful for centroids" << std::endl;
@@ -130,7 +136,7 @@ int main(int argc, char **argv)
   } else
     std::cout << "Failed to open file for centroids" << std::endl;
   outFile_centroids.close();
-  
+  */
   
   /*
   if (X_compressed.save("data_files/fiona/fiona.out", arma::raw_ascii))

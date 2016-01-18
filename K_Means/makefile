@@ -9,3 +9,6 @@ main.o : main.cpp
 
 clean : 
 	rm main.o k_means.o kmeans
+
+dataClear :
+	rm ../data_files/toyclusters/centroids.out ../data_files/toyclusters/idx.out ../data_files/toyclusters/idx.dat ../data_files/toyclusters/plot.png

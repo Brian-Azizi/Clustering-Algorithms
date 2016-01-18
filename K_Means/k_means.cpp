@@ -121,13 +121,15 @@ output = NxD centroids matrix - contains final centroids.
  */
 arma::Mat<double> runkMeans(const arma::Mat<double>& X, arma::Col<arma::uword>& idx, 
 			    const arma::Mat<double>& initial_centroids,
-			    const  arma::uword& max_iter)
+			    const  arma::uword& max_iter, double& finalCost)
 {
   // Initialize values
   arma::uword K = initial_centroids.n_rows;
   arma::Mat<double> centroids = initial_centroids;
   arma::Mat<double> previous_centroids = centroids;
-  
+  double currentCost = -1;
+  double cost = 0;
+
   // Run K-Means
   for (arma::uword i = 0; i != max_iter; ++i) {
     // Output progress
@@ -140,9 +142,16 @@ arma::Mat<double> runkMeans(const arma::Mat<double>& X, arma::Col<arma::uword>& 
     centroids = computeCentroids(X, idx, K);
     
     // output progress
-    std::cout << "Cost: " << kMeansCost(X, centroids, idx) << std::endl;
+    cost = kMeansCost(X, centroids, idx);
+    std::cout << "Cost: " << cost << std::endl;
+    if ( i > 0 && fabs(cost - currentCost) < 0.000001*fabs(currentCost) ) {
+      std::cout << "Converged after " << i + 1 << " iterations." << std::endl;
+      break;
+    }
+    currentCost = cost;
   }
-
+  
+  finalCost = cost;
   return centroids;
 }
 
