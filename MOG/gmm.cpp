@@ -227,9 +227,77 @@ arma::Mat<double> gmmEstep(const arma::Mat<double>& X, const arma::uword& K, con
 
   // Normalize the rows of Gamma
   arma::Col<double> gammaSum(N);
-  gammaSum = sum(Gamma, 1);  // holds the sum of each row of Gamma
+  gammaSum = arma::sum(Gamma, 1);  // holds the sum of each row of Gamma
   Gamma.each_col() /= gammaSum;
 
   return Gamma;
 }
 
+
+
+
+/* Executes the M-Step of the EM algorithm for the GMM
+   X is the NxD design matrix
+   K is the number of base distributions in the model
+   Gamma is the NxK matrix containing the cluster responsibilities
+   means, vars and coeffs are passed by reference and will be modified to store the output
+   of the M-Step:
+   means will be a KxD matrix containing the new cluster means in its rows
+   vars will be a DKxD matrix containing the new cluster variances stacked vertically
+   coeffs will be a Kx1 matrix containing the new mixing coefficients
+*/
+
+void gmmMstep(const arma::Mat<double>& X, const arma::uword& K, const arma::Mat<double>& Gamma,	\
+	      arma::Mat<double>& means, arma::Mat<double>& vars, arma::Mat<double>& coeffs)
+{
+  // Declare internal variables
+  const arma::uword N = X.n_rows, D = X.n_cols;
+  arma::Mat<double> x(D,1);
+  arma::Mat<double> xT(1,D);
+  
+  arma::Mat<double> mu(D,1);
+  arma::Mat<double> muT(1,D);
+  arma::Mat<double> sigma(D,D);
+  double prob;
+  
+  // Declare variables to be returned (i.e. assigned to function arguments that were passed by reference and not const)
+  arma::Mat<double> MU(K,D);
+  arma::Mat<double> SIGMA(K*D,D);
+  arma::Mat<double> PI(K,1);
+
+  // Find N_k
+  arma::Row<double> clusterSize = arma::sum(Gamma);  // holds the sum of each column of Gamma (= effective cluster size)
+
+  for (arma::uword k = 0; k < K; ++k) {
+    // Find MU
+    muT.zeros();
+    for (arma::uword i = 0; i < N; ++i) {
+      xT = X.row(i);
+      muT += Gamma(i,k) * xT;
+    }
+    muT /= clusterSize(k);
+    mu = muT.t();
+
+    // Find Sigma
+    sigma.zeros();
+    for (arma::uword i = 0; i < N; ++i) {
+      xT = X.row(i);
+      x = xT.t();
+      sigma += Gamma(i,k) * (x - mu) * (xT - muT);
+    }
+    sigma /= clusterSize(k);
+
+    // Find Pi
+    prob = clusterSize(k) / N;
+
+    // Store the variables:
+    MU.row(k) = muT;
+    SIGMA.rows(k*D, (k+1)*D - 1) = sigma;
+    PI(k) = prob;
+  }
+  
+  // Return the result
+  means = MU;
+  vars = SIGMA;
+  coeffs = PI;
+}

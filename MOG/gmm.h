@@ -12,5 +12,7 @@ double gmmLogLikelihood ( const arma::Mat<double>&, const arma::uword&, const ar
 			  const arma::Mat<double>&, const arma::Mat<double>&);
 arma::Mat<double> gmmEstep (const arma::Mat<double>&, const arma::uword&, const arma::Mat<double>&,\
 			    const arma::Mat<double>&, const arma::Mat<double>&);
+void gmmMstep (const arma::Mat<double>&, const arma::uword&, const arma::Mat<double>&,\
+	       arma::Mat<double>&, arma::Mat<double>&, arma::Mat<double>&);
 
 #endif

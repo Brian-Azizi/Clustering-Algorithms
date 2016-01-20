@@ -38,20 +38,21 @@ int main(int argc, char **argv)
 
   // INITIALIZE PARAMETERS
   //   initialize mu to be K distinct random data points
-  means = gmmInitialMeans(X,K);
-  //means << 0 << 0 << arma::endr
-  //	<< 0 << 5 << arma::endr
-  //	<< 6 << 5 << arma::endr;
+  means = gmmInitialMeans(X,K); 
+  // means << 0 << 0 << arma::endr
+  // 	<< 0 << 5 << arma::endr
+  // 	<< 6 << 5 << arma::endr;
   //   initialize variances to be the identity
   vars = gmmInitialVars(K,D);
   //   initialize mixing coefficients
   coeffs = gmmInitialMix(K);
   
-  std::cout << coeffs << std::endl;
-  std::cout << means << std::endl;
-  std::cout << vars << std::endl;
-
+  std::cout << "Initial values: " << std::endl;
+  std::cout << "means = \n" <<  means << std::endl;
+  std::cout << "vars = \n" << vars << std::endl;
+  std::cout << "coeffs = \n" << coeffs << std::endl;
   
+
   // COMPUTE INITIAL LOG LIKELIHOOD
   LogL = gmmLogLikelihood(X, K, means, vars, coeffs);
   std::cout << LogL << std::endl;
@@ -61,8 +62,13 @@ int main(int argc, char **argv)
   //arma::uword maxIter = 200;
   //arma::uword num_runs = 20;
   Gamma = gmmEstep(X, K, means, vars, coeffs);
-  // M Step
-  //  write function that computes sigma given data, mu and gamma
+  gmmMstep(X, K, Gamma, means, vars, coeffs);
+  std::cout << "After first M step:" << std::endl
+	    << "means = \n" << means << std::endl
+	    << "vars = \n" << vars << std::endl
+	    << "coeffs = \n" << coeffs << std::endl;
+  LogL = gmmLogLikelihood(X, K, means, vars, coeffs);
+  std::cout << "LogL = " << LogL << std::endl;
   
   // SAVE OUTPUT
 
