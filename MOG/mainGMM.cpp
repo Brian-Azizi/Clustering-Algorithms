@@ -25,14 +25,22 @@ int main(int argc, char **argv)
   // A) Toy Data Set
   char filename[] = "../data_files/toyclusters/toyclusters.dat";
   X.load(filename);
-  //const arma::uword N = X.n_rows;
+  const arma::uword N = X.n_rows;
   const arma::uword D = X.n_cols;
   
   // DECLARE PARAMETERS
   arma::Mat<double> means(K,D);
   arma::Mat<double> vars(K*D,D);
   arma::Mat<double> coeffs(K,1);
+  arma::Mat<double> Gamma(N, K);
   double LogL;
+
+  // Parameters for best local search
+  arma::Mat<double> MU(K, D);
+  arma::Mat<double> SIGMA(K*D, D);
+  arma::Mat<double> PI(K,1);
+  arma::Mat<double> GAMMA(N, K);
+  arma::Mat<double> logLikelihoodEvolution;
 
 
   // INITIALIZE PARAMETERS
@@ -59,16 +67,34 @@ int main(int argc, char **argv)
 
   // RUN EM ALGORITHM (output parameters and history of loglikelihood)
   arma::uword maxIter = 100;
-  //arma::uword num_runs = 20;
-  arma::Mat<double> J_hist = gmmRunEM(X, K, maxIter, means, vars, coeffs);
+  arma::Mat<double> J_hist = gmmRunEM(X, K, maxIter, means, vars, coeffs, Gamma);
 
   std::cout << "Result of EM algorithm:" << std::endl
 	    << "means = \n" << means << std::endl
 	    << "variances = \n" << vars << std::endl
 	    << "mixing coefficients = \n" << coeffs << std::endl;
-  std::cout << "log Likelihood evolution: \n" << J_hist << std::endl;
+  //  std::cout << "Responsibilities = \n" << Gamma << std::endl;
+  std::cout << "Final log Likelihood: " << *(J_hist.end() - 1) << std::endl;
   
+
+  // SEARCH FOR BEST LOCAL MAXIMUM
+  arma::uword numRuns = 20;
+  logLikelihoodEvolution = gmmBestLocalMax(X, K, numRuns, maxIter, MU, SIGMA, PI, GAMMA);
+
+
+
   // SAVE OUTPUT
+  char MuFile[] = "../data_files/toyclusters/MU.out";
+  char SigmaFile[] = "../data_files/toyclusters/SIGMA.out";
+  char PiFile[] = "../data_files/toyclusters/PI.out";
+  char GammaFile[] = "../data_files/toyclusters/Gamma.out";
+  char LogLFile[] = "../data_files/toyclusters/LogLikelihood.out";
+  
+  means.save(MuFile, arma::raw_ascii);
+  vars.save(SigmaFile, arma::raw_ascii);
+  coeffs.save(PiFile, arma::raw_ascii);
+  Gamma.save(GammaFile, arma::raw_ascii);
+  J_hist.save(LogLFile, arma::raw_ascii);
 
   // COMPUTE PROBABILITY DENSITY AT A GIVEN POINT
 

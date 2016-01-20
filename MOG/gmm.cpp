@@ -38,15 +38,12 @@ int nrand(int n)
    print_seed: (default is false) if true, will print the seed used for the RNG
    Returns a KxD matrix containing K randomly chosen rows of X
  */
-arma::Mat<double> gmmInitialMeans(const arma::Mat<double>& X, const arma::uword& K, bool print_seed)
+arma::Mat<double> gmmInitialMeans(const arma::Mat<double>& X, const arma::uword& K)
 {
   // Initialize values
   arma::uword N = X.n_rows, D = X.n_cols;
   arma::Mat<double> means(K, D);
 
-  // Set seed for the RNG
-  int seed = time(NULL);
-  srand(seed);
 
   // select K random rows of X
   arma::Col<arma::uword> rand_idx(K);
@@ -67,10 +64,6 @@ arma::Mat<double> gmmInitialMeans(const arma::Mat<double>& X, const arma::uword&
   // let the mean be these rows
   for (arma::uword k = 0; k < K; ++k) {
     means.row(k) = X.row(rand_idx(k));
-  }
-  
-  if (print_seed) {
-    std::cout << "RNG Seed = " << seed << std::endl;
   }
   
   return means;
@@ -308,24 +301,23 @@ void gmmMstep(const arma::Mat<double>& X, const arma::uword& K, const arma::Mat<
    X is the NxD design matrix
    K is the number of base distributions
    maxIter is the maximum number of iterations
-   means, vars and coeffs are passed by reference and will be modified to store the output
+   means, vars, coeffs and Gamma are passed by reference and will be modified to store the output
    of the algorithm:
    means will be a KxD matrix containing the final cluster means in its rows
    vars will be a DKxD matrix containing the final cluster variances stacked vertically
    coeffs will be a Kx1 matrix containing the final mixing coefficients
+   Gamma will be a NxK matrix containing the final responsibilities
    The function returns a column matrix containing the log likelihood values after each iteration
 
    The convergence criterion is a mixed error test with target error targetError
  */
 
 arma::Mat<double> gmmRunEM(const arma::Mat<double>& X, const arma::uword& K, const arma::uword& maxIter,\
-			   arma::Mat<double>& means, arma::Mat<double>& vars, arma::Mat<double>& coeffs)
+			   arma::Mat<double>& means, arma::Mat<double>& vars, arma::Mat<double>& coeffs, arma::Mat<double>& Gamma)
 {
   
   // Declare internal variables to store results
   arma::Mat<double> MU = means, SIGMA = vars, PI = coeffs;
-  arma::uword N = X.n_rows;
-  arma::Mat<double> Gamma(N, K);
   arma::uword num = 0;
   const double targetError = 0.00001;
   
@@ -349,12 +341,19 @@ arma::Mat<double> gmmRunEM(const arma::Mat<double>& X, const arma::uword& K, con
       break;
     }
   }
-
+  
+  
   if (num == maxIter) {
     std::cout << "Warning: No convergence of EM algorithm after " << maxIter << " iterations" << std::endl;
-  } else if (num < maxIter) {
-    std::cout << "EM algorithm converged after " << num << " (of maximal " << maxIter << ") iterations." << std::endl;
-  } else {
+  }
+  else if (num < maxIter) {
+    std::cout << "EM algorithm converged after " << num << " iterations (of maximal " << maxIter << ")." << std::endl;
+    // Fill in the remaining values of J_hist
+    arma::Mat<double> fillin(maxIter - num, 1);
+    fillin.each_row() = J_hist.row(num - 1);
+    J_hist.rows(num, maxIter - 1) = fillin;
+  }
+  else {
     std::cout << "Error ?" << std::endl;
   }
 
@@ -362,7 +361,92 @@ arma::Mat<double> gmmRunEM(const arma::Mat<double>& X, const arma::uword& K, con
   means = MU;
   vars = SIGMA;
   coeffs = PI;
+  Gamma = gmmEstep(X, K, means, vars, coeffs);
 
   // Return likelihood values.
-  return J_hist.rows(0,num - 1);
+  return J_hist;
+  //  return J_hist.rows(0,num - 1);
+}
+
+
+
+
+
+
+
+/* Run the EM algorithm for the GMM multiple times with different initial cluster means and return the result with the largest
+   log likelihood
+   X is the NxD design matrix
+   K is the number of base distributions
+   numRuns is the total number of runs that will be performed
+   maxIter is the maximum number of iterations for any single run
+   means, vars, coeffs and Gamma are passed by reference and will be modified to store the output
+   of the algorithm:
+   means will be a KxD matrix containing the best cluster means found in its rows
+   vars will be a DKxD matrix containing the best cluster variances found stacked vertically
+   coeffs will be a Kx1 matrix containing the best mixing coefficients found
+   Gamma will be a NxK matrix containing the best responsibilities found
+   The function returns a column matrix containing the log likelihood values for the best run
+ */
+
+arma::Mat<double> gmmBestLocalMax(const arma::Mat<double>& X, const arma::uword& K, const arma::uword& numRuns,\
+				  const arma::uword& maxIter, arma::Mat<double>& MU, arma::Mat<double>& SIGMA,\
+				  arma::Mat<double>& PI, arma::Mat<double>& GAMMA)
+{
+  // useful constants
+  arma::uword N = X.n_rows;
+  arma::uword D = X.n_cols;
+  
+
+  // Declare Final Variables
+  arma::Mat<double> bestMU(K, D);
+  arma::Mat<double> bestSIGMA(D*K, D);
+  arma::Mat<double> bestPI(K, 1);
+  arma::Mat<double> bestGAMMA(N, K);
+  arma::Mat<double> best_J_hist(maxIter, 1);
+  double bestLogL = -INFINITY;
+
+  // Declare temporary variables
+  arma::Mat<double> currentMU(K, D);
+  arma::Mat<double> currentSIGMA(D*K, D);
+  arma::Mat<double> currentPI(K, 1);
+  arma::Mat<double> currentGAMMA(N, K);
+  arma::Mat<double> current_J_hist(maxIter, 1);
+  double currentLogL;
+
+  int seed = time(NULL);
+  srand(seed);
+  
+  for (arma::uword run = 0; run < numRuns; ++run) {
+    // Initialize
+    currentMU = gmmInitialMeans(X, K);
+    currentSIGMA = gmmInitialVars(K, D);
+    currentPI = gmmInitialMix(K);
+    
+    // Run EM
+    std::cout << "Run " << run + 1 << " / " << numRuns << ":" << std::endl;
+    current_J_hist = gmmRunEM(X, K, maxIter, currentMU, currentSIGMA, currentPI, currentGAMMA);
+    currentLogL = current_J_hist(maxIter - 1, 0);
+
+    // store the best one
+    if (run == 0 || currentLogL > bestLogL) {
+      bestMU = currentMU;
+      bestSIGMA = currentSIGMA;
+      bestPI = currentPI;
+      bestGAMMA = currentGAMMA;
+      best_J_hist = current_J_hist;
+      bestLogL = currentLogL;
+    }
+
+    std::cout << "Log Likelihood = " << currentLogL << std::endl << std::endl;
+  }
+
+  // Return parameters
+  MU = bestMU;
+  SIGMA = bestSIGMA;
+  PI = bestPI;
+  GAMMA = bestGAMMA;
+
+  // Return
+  return best_J_hist;
 }
