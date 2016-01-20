@@ -1,4 +1,6 @@
 #include <armadillo>
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
 #include <fstream>
 #include <sstream>		// for inputing cli arguments
@@ -64,6 +66,9 @@ int main(int argc, char **argv)
   /* Set maximum number of iterations */
   arma::uword max_iter = 20;
   arma::uword num_runs = 20;
+
+  int seed = time(NULL);
+  srand(seed);
 
   for (arma::uword run = 0; run < num_runs; ++run) {
     std::cout << "RUN " << run + 1 << "/" << num_runs << std::endl;

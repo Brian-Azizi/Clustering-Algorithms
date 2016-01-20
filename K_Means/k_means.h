@@ -14,6 +14,6 @@ double kMeansCost(const arma::Mat<double>&, const arma::Mat<double>&,
 		  const arma::Col<arma::uword>&);
 arma::Mat<double> runkMeans(const arma::Mat<double>&, arma::Col<arma::uword>&,
 			    const arma::Mat<double>&, const arma::uword&, double&);
-arma::Mat<double> kMeansInitCentroids (const arma::Mat<double>&, const arma::uword&, bool print_seed = false);
+arma::Mat<double> kMeansInitCentroids (const arma::Mat<double>&, const arma::uword&);
 
 #endif

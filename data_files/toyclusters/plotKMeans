@@ -1,3 +1,3 @@
 #!/bin/bash
 paste toyclusters.dat idx.out >> idx.dat
-gnuplot pal.plt
+gnuplot plotKMeansOutput.plt

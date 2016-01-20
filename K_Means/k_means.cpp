@@ -42,6 +42,13 @@ arma::Col<arma::uword> findClosestCentroids(const arma::Mat<double>& X,
   return idx;
 }
 
+
+
+
+
+
+
+
 /* computeCentroids(X, idx, K) takes a design matrix X, cluster membership vector idx and the number of clusters K, and outputs the cluster centroids.
 X = NxD design matrix - rows contain examples, columns contain features
 idx = Nx1 cluster membership - row i contains cluster index of ith example, one of {0, 1, ..., K-1}
@@ -112,6 +119,12 @@ double kMeansCost(const arma::Mat<double>& X, arma::Mat<double>& centroids,
   return cost / N;
 }
 
+
+
+
+
+
+
 /* runs kMeans. Stores centroids in output and cluster memberships in idx input (which is passed by reference).
 X = NxD design matrix
 idx = Nx1 cluster memberships. Argument is passed by reference and will store the final indeces.
@@ -155,6 +168,13 @@ arma::Mat<double> runkMeans(const arma::Mat<double>& X, arma::Col<arma::uword>& 
   return centroids;
 }
 
+
+
+
+
+
+
+
 //return a random integer in the range [0,n)
 int nrand(int n)
 {
@@ -170,15 +190,22 @@ int nrand(int n)
 	return r;
 }
 
-arma::Mat<double> kMeansInitCentroids (const arma::Mat<double>& X, const arma::uword& K, bool print_seed)
+
+
+
+
+
+
+
+
+
+
+arma::Mat<double> kMeansInitCentroids (const arma::Mat<double>& X, const arma::uword& K)
 {
   // Initialize values
   arma::uword N = X.n_rows, D = X.n_cols;
   arma::Mat<double> centroids(K, D);
 
-  // Set the seed for the RNG
-  int seed = time(NULL);
-  srand(seed);
   
   // Pick K random rows of X
   arma::Col<arma::uword> rand_idx(K);
@@ -203,9 +230,7 @@ arma::Mat<double> kMeansInitCentroids (const arma::Mat<double>& X, const arma::u
   for (arma::uword k = 0; k != K; ++k) {
     centroids.row(k) = X.row(rand_idx(k));
   }
-  if (print_seed) {
-    std::cout << "Seed ID: " << seed << std::endl;
-  }
+
 
   return centroids;
 }
