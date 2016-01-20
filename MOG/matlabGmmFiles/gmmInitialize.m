@@ -20,8 +20,7 @@ MU = X(sel(1:K),:);
 
 SIGMA = zeros(D*K,D);
 for i = 1:K
-    sigma = rand(D);
-    SIGMA(D*(i-1) + 1 : D*i, :) = sigma'*sigma;
+    SIGMA(D*(i-1) + 1 : D*i, :) = eye(D);
 end
 
 PI = ones(K,1) / K;

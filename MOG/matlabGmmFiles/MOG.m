@@ -1,7 +1,7 @@
 % Mixture of Gaussians
 
 % load the data:
-dataFile = '../data_files/toyclusters/toyclusters.dat';
+dataFile = '../../data_files/toyclusters/toyclusters.dat';
 X = load(dataFile);
 [N, D] = size(X);
 
@@ -10,7 +10,6 @@ K = 3;
 
 % Initialize the parameter:
 [MU, SIGMA, PI] = gmmInitialize(X,K);
-
 
 % Evaluate log likelihood:
 J_old = gmmLogLikelihood(X,K,MU,SIGMA,PI);
