@@ -10,6 +10,7 @@ K = 3;
 
 % Initialize the parameter:
 [MU, SIGMA, PI] = gmmInitialize(X,K);
+%MU = [0 0; 0 5; 6 5];
 
 % Evaluate log likelihood:
 J_old = gmmLogLikelihood(X,K,MU,SIGMA,PI);

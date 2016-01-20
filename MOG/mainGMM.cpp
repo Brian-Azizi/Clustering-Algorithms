@@ -33,15 +33,15 @@ int main(int argc, char **argv)
   arma::Mat<double> vars(K*D,D);
   //arma::Mat<double> sigmaTemp(D,D);
   arma::Mat<double> coeffs(K,1);
-  //arma::Mat<double> Gamma(N,K);
+  arma::Mat<double> Gamma(N,K);
   double LogL;
 
   // INITIALIZE PARAMETERS
   //   initialize mu to be K distinct random data points
   means = gmmInitialMeans(X,K);
-  // means << 0 << 0 << arma::endr
-  // 	<< 0 << 5 << arma::endr
-  // 	<< 6 << 5 << arma::endr;
+  //means << 0 << 0 << arma::endr
+  //	<< 0 << 5 << arma::endr
+  //	<< 6 << 5 << arma::endr;
   //   initialize variances to be the identity
   vars = gmmInitialVars(K,D);
   //   initialize mixing coefficients
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
   // RUN EM ALGORITHM (output history of loglikelihood and parameters)
   //arma::uword maxIter = 200;
   //arma::uword num_runs = 20;
-  // E Step
+  Gamma = gmmEstep(X, K, means, vars, coeffs);
   // M Step
   //  write function that computes sigma given data, mu and gamma
   

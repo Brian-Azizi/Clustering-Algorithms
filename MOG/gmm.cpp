@@ -173,3 +173,63 @@ double gmmLogLikelihood (const arma::Mat<double>& X, const arma::uword& K,\
 }
 
 
+
+
+
+
+/* E-Step of EM algorithm for the GMM
+   X is the NxD design matrix
+   K is the number of base distributions
+   means is the KxD matrix containing the K cluster means in its rows
+   vars is the (K*D)xD matrix containing the K cluster variances stacked vertically
+   coeffs is the Kx1 matrix containing the mixing coefficients of the cluster
+   Returns the NxK matrix whose (i,k)th element contains the resposibility of cluster k for explaining sample i.
+*/
+arma::Mat<double> gmmEstep(const arma::Mat<double>& X, const arma::uword& K, const arma::Mat<double>& means,\
+			   const arma::Mat<double>& vars, const arma::Mat<double>& coeffs)
+{
+  // Declare variables
+  arma::uword N = X.n_rows, D = X.n_cols;
+
+  arma::Mat<double> x(D,1);
+  arma::Mat<double> xT(1,D);
+
+  arma::Mat<double> mu(D,1);
+  arma::Mat<double> muT(1,D);
+  arma::Mat<double> sigma(D,D);
+  arma::Mat<double> invSigma(D,D);
+  double detSigma;
+  double prob;
+  double gaussConstant;
+
+  // Initialize return variable
+  arma::Mat<double> Gamma(N,K);
+  arma::Mat<double> tempGamma(1,1); // since assigning an element of Gamma (double) directly to a 1x1 matrix (product of matrices) causes issues
+
+
+  // Compute numerator for the entire Gamma matrix
+  for (arma::uword k = 0; k < K; ++k) {
+    muT = means.row(k);
+    mu = muT.t();
+    sigma = vars.rows(k*D, (k+1)*D - 1);
+    invSigma = arma::pinv(sigma);
+    detSigma = arma::det(sigma);
+    prob = coeffs(k);
+    gaussConstant = 1.0 / sqrt(detSigma * pow(2*arma::datum::pi, D));
+
+    for (arma::uword i = 0; i < N; ++i) {
+      xT = X.row(i);
+      x = xT.t();
+      tempGamma = gaussConstant * prob * exp(-0.5*(xT - muT)*invSigma*(x - mu));
+      Gamma(i,k) = tempGamma(0,0);
+    }
+  }
+
+  // Normalize the rows of Gamma
+  arma::Col<double> gammaSum(N);
+  gammaSum = sum(Gamma, 1);  // holds the sum of each row of Gamma
+  Gamma.each_col() /= gammaSum;
+
+  return Gamma;
+}
+
