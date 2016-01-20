@@ -301,3 +301,68 @@ void gmmMstep(const arma::Mat<double>& X, const arma::uword& K, const arma::Mat<
   vars = SIGMA;
   coeffs = PI;
 }
+
+
+
+/* Performs the EM algorithm to fit the Gaussian Mixture Model
+   X is the NxD design matrix
+   K is the number of base distributions
+   maxIter is the maximum number of iterations
+   means, vars and coeffs are passed by reference and will be modified to store the output
+   of the algorithm:
+   means will be a KxD matrix containing the final cluster means in its rows
+   vars will be a DKxD matrix containing the final cluster variances stacked vertically
+   coeffs will be a Kx1 matrix containing the final mixing coefficients
+   The function returns a column matrix containing the log likelihood values after each iteration
+
+   The convergence criterion is a mixed error test with target error targetError
+ */
+
+arma::Mat<double> gmmRunEM(const arma::Mat<double>& X, const arma::uword& K, const arma::uword& maxIter,\
+			   arma::Mat<double>& means, arma::Mat<double>& vars, arma::Mat<double>& coeffs)
+{
+  
+  // Declare internal variables to store results
+  arma::Mat<double> MU = means, SIGMA = vars, PI = coeffs;
+  arma::uword N = X.n_rows;
+  arma::Mat<double> Gamma(N, K);
+  arma::uword num = 0;
+  const double targetError = 0.00001;
+  
+  // Declare return variable containing the evolution of the log Likelihood
+  arma::Mat<double> J_hist(maxIter, 1);
+  J_hist.zeros();
+
+  // Iterate over E-step and M-step. 
+  for (arma::uword n = 0; n < maxIter; ++n) {
+    Gamma = gmmEstep(X, K, MU, SIGMA, PI);
+    gmmMstep(X, K, Gamma, MU, SIGMA, PI);
+    J_hist(n, 0) = gmmLogLikelihood(X, K, MU, SIGMA, PI);
+    num = n + 1;
+
+    // Check for convergence
+    if (n == 0) {
+      continue;
+    }
+
+    if ( fabs(J_hist(n,0) - J_hist(n-1,0)) < targetError*(1 + fabs(J_hist(n-1,0))) ) {
+      break;
+    }
+  }
+
+  if (num == maxIter) {
+    std::cout << "Warning: No convergence of EM algorithm after " << maxIter << " iterations" << std::endl;
+  } else if (num < maxIter) {
+    std::cout << "EM algorithm converged after " << num << " (of maximal " << maxIter << ") iterations." << std::endl;
+  } else {
+    std::cout << "Error ?" << std::endl;
+  }
+
+  // Return parameters:
+  means = MU;
+  vars = SIGMA;
+  coeffs = PI;
+
+  // Return likelihood values.
+  return J_hist.rows(0,num - 1);
+}

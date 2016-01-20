@@ -25,16 +25,15 @@ int main(int argc, char **argv)
   // A) Toy Data Set
   char filename[] = "../data_files/toyclusters/toyclusters.dat";
   X.load(filename);
-  const arma::uword N = X.n_rows;
+  //const arma::uword N = X.n_rows;
   const arma::uword D = X.n_cols;
   
   // DECLARE PARAMETERS
   arma::Mat<double> means(K,D);
   arma::Mat<double> vars(K*D,D);
-  //arma::Mat<double> sigmaTemp(D,D);
   arma::Mat<double> coeffs(K,1);
-  arma::Mat<double> Gamma(N,K);
   double LogL;
+
 
   // INITIALIZE PARAMETERS
   //   initialize mu to be K distinct random data points
@@ -55,20 +54,19 @@ int main(int argc, char **argv)
 
   // COMPUTE INITIAL LOG LIKELIHOOD
   LogL = gmmLogLikelihood(X, K, means, vars, coeffs);
-  std::cout << LogL << std::endl;
+  std::cout << "Initial log likelihood = " << LogL << std::endl;
 
 
-  // RUN EM ALGORITHM (output history of loglikelihood and parameters)
-  //arma::uword maxIter = 200;
+  // RUN EM ALGORITHM (output parameters and history of loglikelihood)
+  arma::uword maxIter = 100;
   //arma::uword num_runs = 20;
-  Gamma = gmmEstep(X, K, means, vars, coeffs);
-  gmmMstep(X, K, Gamma, means, vars, coeffs);
-  std::cout << "After first M step:" << std::endl
+  arma::Mat<double> J_hist = gmmRunEM(X, K, maxIter, means, vars, coeffs);
+
+  std::cout << "Result of EM algorithm:" << std::endl
 	    << "means = \n" << means << std::endl
-	    << "vars = \n" << vars << std::endl
-	    << "coeffs = \n" << coeffs << std::endl;
-  LogL = gmmLogLikelihood(X, K, means, vars, coeffs);
-  std::cout << "LogL = " << LogL << std::endl;
+	    << "variances = \n" << vars << std::endl
+	    << "mixing coefficients = \n" << coeffs << std::endl;
+  std::cout << "log Likelihood evolution: \n" << J_hist << std::endl;
   
   // SAVE OUTPUT
 

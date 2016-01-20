@@ -14,5 +14,7 @@ arma::Mat<double> gmmEstep (const arma::Mat<double>&, const arma::uword&, const 
 			    const arma::Mat<double>&, const arma::Mat<double>&);
 void gmmMstep (const arma::Mat<double>&, const arma::uword&, const arma::Mat<double>&,\
 	       arma::Mat<double>&, arma::Mat<double>&, arma::Mat<double>&);
+arma::Mat<double> gmmRunEM (const arma::Mat<double>&, const arma::uword&, const arma::uword&,\
+			    arma::Mat<double>&, arma::Mat<double>&, arma::Mat<double>&);
 
 #endif
