@@ -450,3 +450,55 @@ arma::Mat<double> gmmBestLocalMax(const arma::Mat<double>& X, const arma::uword&
   // Return
   return best_J_hist;
 }
+
+
+
+
+
+
+
+/* Compute the mixture of gaussians density function at a specific point for a given set of parameters
+   x is the Dx1 matrix containing the coordinates of the point at which the density is to be evaluated
+   K is the number of base distributions
+   MU is the KxD matrix containing the K cluster means in its rows
+   SIGMA is the KDxD matrix containing the K cluster variances stacked vertically
+   PI is the Kx1 matrix containing the K mixing coefficients of the GMM
+   the function return the probability density at x (as a double)
+ */
+
+double gmmDensity (const arma::Mat<double>& x, const arma::uword& K, const arma::Mat<double>& MU, \
+		   const arma::Mat<double>& SIGMA, const arma::Mat<double>& PI)
+{
+  // DECLARE VARIABLES
+  arma::Mat<double> p(1,1); // need a 1x1 matrix before returning a double
+  p.zeros();
+
+  const arma::uword D = x.n_rows;
+  arma::Mat<double> xT = x.t();
+
+  arma::Mat<double> mu(D, 1);
+  arma::Mat<double> muT(1, D);
+  arma::Mat<double> sigma(D, D);
+  arma::Mat<double> invSigma(D, D);
+  double detSigma;
+  double prob;
+  double gaussianConstant;
+
+
+  // COMPUTE GMM DENSITY FOR GIVEN PARAMETERS AT POINT X
+  for (arma::uword k = 0; k < K; ++k) {
+    muT = MU.row(k);
+    mu = muT.t();
+    sigma = SIGMA.rows(k*D, (k+1)*D - 1);
+    invSigma = arma::pinv(sigma);
+    detSigma = arma::det(sigma);
+    prob = PI(k,0);
+    
+    gaussianConstant = 1.0 / (sqrt(detSigma * pow(2*arma::datum::pi, D)));
+
+    p += prob * gaussianConstant * exp(-0.5 * (xT - muT) * invSigma * (x - mu));
+  }
+  
+  double p_x = p(0, 0);
+  return p_x;
+}

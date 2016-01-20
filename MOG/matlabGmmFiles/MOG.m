@@ -60,6 +60,19 @@ contour(A,B,Z);
 figure
 surf(A,B,Z);
 
+x_test = [5.2; 3];
+p_test = 0;
+for k = 1:K
+    r = PI(k);
+    mu = MU(k,:)';
+    sigma = SIGMA(D*(k-1)+1:D*k, :);
+    p_test = p_test + r*(2*pi)^(-0.5*D)*det(sigma)^(-0.5)*exp(...
+            -0.5*(x_test - mu)' * pinv(sigma) * (x_test - mu));
+end
+
+disp(x_test);
+disp(p_test);
+
 
 
 

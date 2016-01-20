@@ -68,8 +68,16 @@ int main(int argc, char **argv)
   GAMMA.save(GammaFile, arma::raw_ascii);
   logL_hist.save(LogLFile, arma::raw_ascii);
 
-  // COMPUTE PROBABILITY DENSITY AT A GIVEN POINT
 
+
+  // COMPUTE PROBABILITY DENSITY AT A GIVEN POINT
+  arma::Mat<double> x_test(D, 1);
+  x_test << 5.2 << arma::endr << 3.0 << arma::endr;
+  double p_test = gmmDensity(x_test, K, MU, SIGMA, PI);
+  
+  std::cout << std::endl << "Test point = \n" << std::endl
+	    << x_test << "GMM probability density at test point = " 
+	    << p_test << std::endl << std::endl;
 
   return 0;
 }

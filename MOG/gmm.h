@@ -19,4 +19,6 @@ arma::Mat<double> gmmRunEM (const arma::Mat<double>&, const arma::uword&, const 
 arma::Mat<double> gmmBestLocalMax (const arma::Mat<double>&, const arma::uword&, const arma::uword&, const arma::uword&,
 				   arma::Mat<double>&, arma::Mat<double>&, arma::Mat<double>&, arma::Mat<double>&);
 
+double gmmDensity (const arma::Mat<double>&, const arma::uword&, const arma::Mat<double>&,\
+		   const arma::Mat<double>&, const arma::Mat<double>&);
 #endif
