@@ -1,2 +1,2 @@
 clean : 
-	rm MU.out SIGMA.out PI.out Gamma.out LogLikelihood.out idx.out centroids.out idx.dat
+	rm MU.out SIGMA.out PI.out GAMMA.out logL_hist.out idx.out centroids.out idx.dat

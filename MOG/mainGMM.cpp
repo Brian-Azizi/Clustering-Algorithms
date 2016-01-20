@@ -18,6 +18,7 @@ int main(int argc, char **argv)
     }
   }
 
+
   // LOAD DATA
   arma::Mat<double> X;
   const arma::uword K = num_clusters;
@@ -28,73 +29,44 @@ int main(int argc, char **argv)
   const arma::uword N = X.n_rows;
   const arma::uword D = X.n_cols;
   
-  // DECLARE PARAMETERS
-  arma::Mat<double> means(K,D);
-  arma::Mat<double> vars(K*D,D);
-  arma::Mat<double> coeffs(K,1);
-  arma::Mat<double> Gamma(N, K);
-  double LogL;
 
-  // Parameters for best local search
+
+  // DECLARE PARAMETERS
   arma::Mat<double> MU(K, D);
   arma::Mat<double> SIGMA(K*D, D);
   arma::Mat<double> PI(K,1);
   arma::Mat<double> GAMMA(N, K);
-  arma::Mat<double> logLikelihoodEvolution;
 
 
-  // INITIALIZE PARAMETERS
-  //   initialize mu to be K distinct random data points
-  means = gmmInitialMeans(X,K); 
-  // means << 0 << 0 << arma::endr
-  // 	<< 0 << 5 << arma::endr
-  // 	<< 6 << 5 << arma::endr;
-  //   initialize variances to be the identity
-  vars = gmmInitialVars(K,D);
-  //   initialize mixing coefficients
-  coeffs = gmmInitialMix(K);
-  
-  std::cout << "Initial values: " << std::endl;
-  std::cout << "means = \n" <<  means << std::endl;
-  std::cout << "vars = \n" << vars << std::endl;
-  std::cout << "coeffs = \n" << coeffs << std::endl;
-  
-
-  // COMPUTE INITIAL LOG LIKELIHOOD
-  LogL = gmmLogLikelihood(X, K, means, vars, coeffs);
-  std::cout << "Initial log likelihood = " << LogL << std::endl;
-
-
-  // RUN EM ALGORITHM (output parameters and history of loglikelihood)
-  arma::uword maxIter = 100;
-  arma::Mat<double> J_hist = gmmRunEM(X, K, maxIter, means, vars, coeffs, Gamma);
-
-  std::cout << "Result of EM algorithm:" << std::endl
-	    << "means = \n" << means << std::endl
-	    << "variances = \n" << vars << std::endl
-	    << "mixing coefficients = \n" << coeffs << std::endl;
-  //  std::cout << "Responsibilities = \n" << Gamma << std::endl;
-  std::cout << "Final log Likelihood: " << *(J_hist.end() - 1) << std::endl;
-  
-
-  // SEARCH FOR BEST LOCAL MAXIMUM
+  // RUN EM ALGORITHM AND SEARCH FOR BEST LOCAL MAXIMUM
   arma::uword numRuns = 20;
-  logLikelihoodEvolution = gmmBestLocalMax(X, K, numRuns, maxIter, MU, SIGMA, PI, GAMMA);
+  arma::uword maxIter = 100;
+  arma::Mat<double> logL_hist(maxIter, 1);
+  logL_hist = gmmBestLocalMax(X, K, numRuns, maxIter, MU, SIGMA, PI, GAMMA);
 
+  
+  // DISPLAY RESULTS
+  std::cout << "Results of EM algorithm:" << std::endl
+	    << "K = " << K << std::endl
+	    << "Means = \n" << MU << std::endl
+	    << "Variances = \n" << SIGMA << std::endl
+	    << "Mixing coefficients = \n" << PI << std::endl
+	    << "Final log Likelihood: " << *(logL_hist.end() - 1) << std::endl;
+  
 
 
   // SAVE OUTPUT
   char MuFile[] = "../data_files/toyclusters/MU.out";
   char SigmaFile[] = "../data_files/toyclusters/SIGMA.out";
   char PiFile[] = "../data_files/toyclusters/PI.out";
-  char GammaFile[] = "../data_files/toyclusters/Gamma.out";
-  char LogLFile[] = "../data_files/toyclusters/LogLikelihood.out";
+  char GammaFile[] = "../data_files/toyclusters/GAMMA.out";
+  char LogLFile[] = "../data_files/toyclusters/logL_hist.out";
   
-  means.save(MuFile, arma::raw_ascii);
-  vars.save(SigmaFile, arma::raw_ascii);
-  coeffs.save(PiFile, arma::raw_ascii);
-  Gamma.save(GammaFile, arma::raw_ascii);
-  J_hist.save(LogLFile, arma::raw_ascii);
+  MU.save(MuFile, arma::raw_ascii);
+  SIGMA.save(SigmaFile, arma::raw_ascii);
+  PI.save(PiFile, arma::raw_ascii);
+  GAMMA.save(GammaFile, arma::raw_ascii);
+  logL_hist.save(LogLFile, arma::raw_ascii);
 
   // COMPUTE PROBABILITY DENSITY AT A GIVEN POINT
 
