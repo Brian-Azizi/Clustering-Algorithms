@@ -1,0 +1,47 @@
+Contents of Mini 1:
+
+DO THE CODING FIRST
+	(Tending more towards option B)
+
+A) Clustering using LVMs (Murphy way):
+	Introduce LVMs and Mixture Models in general
+	    Specify how they can be used for clustering
+	GMM as particular instance of mixture models
+	    EM for GMM
+	K-Means as limit of GMM
+	    EM for K-Means
+	
+B) Clustering without much LVM (Bishop way):
+	Clustering in General
+	K-Means as naive method
+	    Limitations of K-Means
+	GMM as extension of K-Means
+	    quick discussion of LVMs
+	    EM for GMM
+	    K-Means as limit of GMM
+
+The difficult part
+	Discussion of applications
+	    Image Segmentation
+	    Data compression
+	    Exploratory research
+	Discussion of Model Selection
+	    Elbow Method for K-Means
+	    probability based for GMM
+
+	Benchmarking:
+	    Speed
+	    result of clustering (purity??)
+	    effect of noise
+	    Effect of pre-processing (demean and whiten)
+	    Effect of change of feature space
+
+	Extensions:
+	    .
+	    .
+	    .
+
+Mini 2:
+
+DIRICHLET 
+(infinite Mixture Model?)	 
