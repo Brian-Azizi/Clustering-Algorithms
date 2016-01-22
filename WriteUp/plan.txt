@@ -2,7 +2,13 @@ Contents of Mini 1:
 
 DO THE CODING FIRST
 	(Tending more towards option B)
+	
+Possible changes to Code:
+	 Use std::vector<arma::Mat<double> > to collect the variance matrices for the GMM (and the means too). 
+	 
+	 Look at what kind of diagnostics people have looked at for clustering. What are common test data sets.
 
+	
 A) Clustering using LVMs (Murphy way):
 	Introduce LVMs and Mixture Models in general
 	    Specify how they can be used for clustering
