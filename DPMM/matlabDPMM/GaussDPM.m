@@ -64,7 +64,7 @@ for sweep = 1:NUM_SWEEPS
         clust_sizes(c) = clust_sizes(c) - 1;
         if clust_sizes(c) == 0       % remove empty clusters
             clust_sizes(c) = clust_sizes(K);  % move entries for K onto position c
-            mu(c) = mu(K);
+            mu(c,:) = mu(K,:);
             clusters(clusters == K) = c;
             mu(K,:) = nan;
             clust_sizes(K) = nan;
