@@ -2,20 +2,21 @@
 % isotropic variance and unknown mean with a gauss-gamma prior
 
 % Generate Artificial Data
-%generate_N = 40;
-%generate_MU = [repmat([1,1],10,1);repmat([1,-1],10,1);...
-%        repmat([-1,-1],10,1);repmat([-1,1],10,1)];
-%generate_SIGMA = 0.01*eye(2);
-%X = mvnrnd(generate_MU, generate_SIGMA);
-%C_true = [ones(10,1);ones(10,1)*2;ones(10,1)*3;ones(10,1)*4];
+generate_N = 20;
+generate_MU = [repmat([1,1],5,1);repmat([1,-1],5,1);...
+        repmat([-1,-1],5,1);repmat([-1,1],5,1)];
+generate_SIGMA = 0.01*eye(2);
+X = mvnrnd(generate_MU, generate_SIGMA);
+C_true = [ones(5,1);ones(5,1)*2;ones(5,1)*3;ones(5,1)*4];
+
 
 % Use toyclusters
-X = load('../../data_files/toyclusters/toyclusters.dat');
+%X = load('../../data_files/toyclusters/toyclusters.dat');
 %[X, m, invMat, whMat] = whiten(XX);
 
 % Fisher Iris Data
 %load fisheriris
-%X = meas(:,[2 3 4]);
+%X = meas;
 
 % Initialize everything
 [N, D] = size(X);
@@ -34,19 +35,21 @@ clust_sizes(K+1:end) = nan;
 
 mu = zeros(N, D);       % contains mean
 for k = 1:K
-    mu(k,:) = mean(X(clusters == k,:),1);
+    %mu(k,:) = mean(X(clusters == k,:),1);
+    mu(k,:) = 0;
 end
 mu(K+1:end,:) = nan;
 
 sigma = zeros(D, D, N);  % contains covariance matrices
 for k = 1:K
-    sigma(:,:,k) = cov(X(clusters == k, :)) + 0.001*eye(D);
+    %sigma(:,:,k) = cov(X(clusters == k, :)) + 0.001*eye(D);
+    sigma(:,:,k) = eye(D);
 end
 sigma(:,:,K+1:end) = nan;
 
 % Initialize hyperparameters
 alpha = 1;              % DP Concentration parameter
-    % prior: NIW(mu,sigma|m_0,k_0,v_0,S_0) 
+    % prior: NIW(mu,sigma|m_0,k_0,S_0,v_0) 
     % = N(mu|m_0,sigma/k_0)*IW(sigma|S_0,v_0)
 S_0 = cov(X) * (N-1)/N;         % S_xbar
 v_0 = D + 2;
@@ -54,7 +57,7 @@ m_0 = mean(X)';
 k_0 = 0.01;
 
 % Initialize sampling parameters
-NUM_SWEEPS = 80;
+NUM_SWEEPS = 250;
 SAVE_CHAIN = false;
 if SAVE_CHAIN
     BURN_IN = 50;
@@ -116,7 +119,7 @@ for sweep = 1:NUM_SWEEPS
         % Sample c_i
         [~, c] = max(mnrnd(1,p));
         clusters(i) = c;
-        
+     
         
         % if new cluster created: sample parameters
         if c == K+1
@@ -129,7 +132,7 @@ for sweep = 1:NUM_SWEEPS
             clust_sizes(c) = clust_sizes(c) + 1;
         end
     end
-    
+   
     % sample new cluster parameters from posterior
     for k = 1:K
         Xk = X(clusters == k, :);
