@@ -13,6 +13,10 @@
 X = load('../../data_files/toyclusters/toyclusters.dat');
 %[X, m, invMat, whMat] = whiten(XX);
 
+% Fisher Iris Data
+%load fisheriris
+%X = meas(:,[2 3 4]);
+
 % Initialize everything
 [N, D] = size(X);
 K = N;
@@ -50,7 +54,7 @@ m_0 = mean(X)';
 k_0 = 0.01;
 
 % Initialize sampling parameters
-NUM_SWEEPS = 50;
+NUM_SWEEPS = 80;
 SAVE_CHAIN = false;
 if SAVE_CHAIN
     BURN_IN = 50;
@@ -171,18 +175,37 @@ end
 fprintf('\n');
 
 % FOR 2D DATA ONLY:
-figure(2)
-%subplot(1,2,1);
-%scatter(X(:,1),X(:,2));
-%gscatter(X(:,1),X(:,2),C_true)
-%title('true clusters');
-%subplot(1,2,2)
-gscatter(X(:,1),X(:,2),clusters);
-hold on
-for k = 1:K
-    plot(mu(k,1),mu(k,2),'k^')
+if D == 2
+    figure(2)
+    %subplot(1,2,1);
+    %scatter(X(:,1),X(:,2));
+    %gscatter(X(:,1),X(:,2),C_true)
+    %title('true clusters');
+    %subplot(1,2,2)
+    gscatter(X(:,1),X(:,2),clusters);
+    hold on
+    for k = 1:K
+        plot(mu(k,1),mu(k,2),'k^')
+    end
+    title('Gaussian-Inverse-Wishart Dirichlet Process Mixture')
 end
-title('Gaussian-Inverse-Wishart Dirichlet Process Mixture')
+% FOR 3D DATA ONLY:
+if D == 3
+    figure(2)
+    cmap = colormap('jet');
+    ncolours = size(cmap,1);
+    col_step = ceil(ncolours/K);
+    colours = 'ymcrgbk';
+    for k = 1:K
+        data = X(clusters==k,:);
+        plot3(data(:,1),data(:,2),data(:,3),...
+            'Color', cmap((k-1)*col_step+1,:),'Marker','.',...
+                'LineStyle','none','MarkerSize',15);
+        hold on;
+    end
+    grid;
+end
+    
         
         
         
