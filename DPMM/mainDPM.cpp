@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
 #include <iostream>
 #include <vector>
 
@@ -13,13 +14,13 @@ int main()
   arma::mat X;
 
   // A) Toy Data
-  //  char inputFile[] = "../data_files/toyclusters/toyclusters.dat";
+  char inputFile[] = "../data_files/toyclusters/toyclusters.dat";
   
   // B) X4.dat
-  //char inputFile[] = "./X3.dat";
+  //char inputFile[] = "./X4.dat";
   
   // C) fisher data
-  char inputFile[] = "./fisher.dat";
+  //char inputFile[] = "./fisher.dat";
   
   // INITIALIZE PARAMETERS
   X.load(inputFile);
@@ -36,7 +37,8 @@ int main()
   // int seed = time(NULL);	// set RNG seed to current time
   // srand(seed);
 
-  arma::uword K = N;   // initial number of clusters
+  arma::uword initial_K = N;   // initial number of clusters
+  arma::uword K = initial_K;
   
   arma::umat clusters(N,1); // contains cluster assignments for each data point
   for (arma::uword i = 0; i < N; ++i) {
@@ -89,8 +91,8 @@ int main()
 
   // INITIALIZE SAMPLING PARAMETERS
   arma::uword NUM_SWEEPS = 1000;	// number of Gibbs iterations
-  bool SAVE_CHAIN = false;	// save output of each Gibbs iteration?
-  arma::uword BURN_IN = 0;
+  bool SAVE_CHAIN = true;	// save output of each Gibbs iteration?
+  arma::uword BURN_IN = NUM_SWEEPS - 10;
   arma::uword CHAINSIZE = NUM_SWEEPS - BURN_IN;
   std::vector<arma::uword> chain_K(CHAINSIZE, K); // Initialize chain variable to initial parameters for convinience
   std::vector<arma::umat> chain_clusters(CHAINSIZE, clusters);
@@ -118,8 +120,7 @@ int main()
 
     // SAMPLE CLUSTERS
     for (arma::uword j = 0; j < N; ++j){
-      //      arma::uword i = shuffled_ids(j);
-      arma::uword i = j;
+      arma::uword i = shuffled_ids(j);
       arma::mat x = X.row(i).t(); // current data point
       
       // Remove i's statistics and any empty clusters
@@ -297,15 +298,10 @@ int main()
   std::cout << "Final cluster sizes: " << std::endl
 	    << cluster_sizes.rows(0, K-1) << std::endl;
 
-  // for (arma::uword sweep = 0; sweep < CHAINSIZE; ++sweep) {
-  //   std::cout << sweep << " K\n" << chain_K[sweep] << std::endl
-  // 		<< sweep << " clusters\n" << chain_clusters[sweep] << std::endl
-  // 		<< sweep << " sizes\n" << chain_clusterSizes[sweep] << std::endl
-  // 		<< sweep << " mu\n" << chain_mu[sweep] << std::endl;
-  //   for (arma::uword i = 0; i < N; ++i) { 
-  // 	std::cout << sweep << " " << i << " sigma\n" << chain_sigma[sweep][i] << std::endl;
-  //   }
-  // }
+
+
+
+
 
   
   // WRITE OUPUT DATA TO FILE
@@ -321,15 +317,63 @@ int main()
   // char SigmaFile[] = "../data_files/toyclusters/dpmSIGMA.out";
   // char IdxFile[] = "../data_files/toyclusters/dpmIDX.out";
 
-  // b) X4.dat
+  // B) X4.dat
   char MuFile[] = "dpmMU.out";
   char SigmaFile[] = "dpmSIGMA.out";
   char IdxFile[] = "dpmIDX.out";
   
-
   MU.save(MuFile, arma::raw_ascii);
   SIGMA.save(SigmaFile, arma::raw_ascii);
   IDX.save(IdxFile, arma::raw_ascii);
+
+
+  if (SAVE_CHAIN) {
+    std::ofstream chainKFile("chainK.out");
+    std::ofstream chainClustersFile("chainClusters.out");
+    std::ofstream chainClusterSizesFile("chainClusterSizes.out");
+    std::ofstream chainMuFile("chainMu.out");
+    std::ofstream chainSigmaFile("chainSigma.out");
+    
+    chainKFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
+	       << "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
+	       << "Burn-In: " << BURN_IN << std::endl
+	       << "Initial number of clusters: " << initial_K << std::endl
+	       << "Output: Number of cluster (K)\n" << std::endl; 
+    chainClustersFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
+		      << "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
+		      << "Burn-In: " << BURN_IN << std::endl
+		      << "Initial number of clusters: " << initial_K << std::endl
+		      << "Output: Cluster identities (clusters)\n" << std::endl; 
+    chainClusterSizesFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
+			  << "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
+			  << "Burn-In: " << BURN_IN << std::endl
+			  << "Initial number of clusters: " << initial_K << std::endl
+			  << "Output: Size of clusters (cluster_sizes)\n" << std::endl; 
+    chainMuFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
+		<< "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
+		<< "Burn-In: " << BURN_IN << std::endl
+		<< "Initial number of clusters: " << initial_K << std::endl
+		<< "Output: Samples for cluster mean parameters (mu. Note: means stored in rows)\n" << std::endl; 
+    chainSigmaFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
+		   << "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
+		   << "Burn-In " << BURN_IN << std::endl
+		   << "Initial number of clusters: " << initial_K << std::endl
+		   << "Output: Samples for cluster covariances (sigma)\n" << std::endl; 
+
+
+    for (arma::uword sweep = 0; sweep < CHAINSIZE; ++sweep) {
+      arma::uword K = chain_K[sweep];
+      chainKFile << "Sweep #" << BURN_IN + sweep + 1 << "\n" << chain_K[sweep] << std::endl;
+      chainClustersFile << "Sweep #" << BURN_IN + sweep + 1 << "\n" << chain_clusters[sweep]  << std::endl;
+      chainClusterSizesFile << "Sweep #" << BURN_IN + sweep + 1 << "\n" << chain_clusterSizes[sweep].rows(0, K - 1) << std::endl;
+      chainMuFile << "Sweep #" << BURN_IN + sweep + 1 << "\n" << chain_mu[sweep].rows(0, K - 1) << std::endl;
+      chainSigmaFile << "Sweep #" << BURN_IN + sweep + 1<< "\n";
+      for (arma::uword i = 0; i < K; ++i) { 
+	chainSigmaFile << chain_sigma[sweep][i] << std::endl;
+      }
+      chainSigmaFile << std::endl;
+    }
+  }
 
   return 0;
 }
