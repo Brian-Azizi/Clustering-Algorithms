@@ -8,5 +8,6 @@ double logInvWishPdf(arma::mat, arma::mat, double);
 double logNormInvWishPdf(arma::mat, arma::mat, arma::mat, double, arma::mat, double);
 arma::uword logCatRnd(arma::mat);
 arma::mat mvnRnd(arma::mat, arma::mat);
+arma::mat invWishRnd(arma::mat, double);
 
 #endif

@@ -1,0 +1,3 @@
+#!/bin/bash
+paste toyclusters.dat dpmIDX.out >> dpmIDX.dat
+gnuplot plotDPM.plt

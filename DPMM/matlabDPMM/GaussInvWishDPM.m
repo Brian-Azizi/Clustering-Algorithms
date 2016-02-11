@@ -2,21 +2,23 @@
 % isotropic variance and unknown mean with a gauss-gamma prior
 
 % Generate Artificial Data
-generate_N = 20;
-generate_MU = [repmat([1,1],5,1);repmat([1,-1],5,1);...
-        repmat([-1,-1],5,1);repmat([-1,1],5,1)];
-generate_SIGMA = 0.01*eye(2);
-X = mvnrnd(generate_MU, generate_SIGMA);
-C_true = [ones(5,1);ones(5,1)*2;ones(5,1)*3;ones(5,1)*4];
+% generate_N = 150;
+% generate_MU = [repmat([5,0],50,1);repmat([-5,-5],50,1);...
+%        repmat([-5,5],50,1)];%;repmat([-1,1],5,1)];
+% generate_SIGMA = 4*eye(2);
+% X = mvnrnd(generate_MU, generate_SIGMA);
+% C_true = [ones(50,1);ones(50,1)*2;ones(50,1)*3];%;ones(5,1)*4];
 
+%X = load('../X4.dat');
+%X = load('../X3.dat');
 
 % Use toyclusters
-%X = load('../../data_files/toyclusters/toyclusters.dat');
+% X = load('../../data_files/toyclusters/toyclusters.dat');
 %[X, m, invMat, whMat] = whiten(XX);
 
 % Fisher Iris Data
-%load fisheriris
-%X = meas;
+load fisheriris
+X = meas;
 
 % Initialize everything
 [N, D] = size(X);
@@ -57,7 +59,7 @@ m_0 = mean(X)';
 k_0 = 0.01;
 
 % Initialize sampling parameters
-NUM_SWEEPS = 250;
+NUM_SWEEPS = 200;
 SAVE_CHAIN = false;
 if SAVE_CHAIN
     BURN_IN = 50;
@@ -76,6 +78,7 @@ for sweep = 1:NUM_SWEEPS
     sel = randperm(N);
     for j = 1:N
         i = sel(j);
+        
     % Remove c_i
         c = clusters(i);             % current cluster
         clust_sizes(c) = clust_sizes(c) - 1;
@@ -98,6 +101,8 @@ for sweep = 1:NUM_SWEEPS
             p(k) = clust_sizes(k)/(N-1+alpha) ...
                     * mvnpdf(x_, mu(k,:)', sigma(:,:,k));
         end
+        lp = log(p(1:end-1));
+        
             % p(new cluster): find partition function     
         dummy_mu = zeros(D,1);
         dummy_sigma = eye(D);
@@ -108,14 +113,18 @@ for sweep = 1:NUM_SWEEPS
         m_1 = (k_0*m_0 + x_)/k_1;
         v_1 = v_0 + 1;
         S_1 = S_0 + x_*x_' + k_0*(m_0*m_0') - k_1*(m_1*m_1');
+        
         [~, logpstr] = NIWpdf(dummy_mu,dummy_sigma,m_1,k_1,S_1,v_1);
             % partition = prior*lklihd/pstr
         logPartition = logprior + logLklihd - logpstr;
+        lp = [lp, log(alpha) - log(N-1+alpha)+logPartition];
+
         partition = exp(logPartition);
         
         p(K+1) = alpha/(N-1+alpha) * partition;
         p = p/sum(p);
-            
+        
+       
         % Sample c_i
         [~, c] = max(mnrnd(1,p));
         clusters(i) = c;
@@ -132,7 +141,10 @@ for sweep = 1:NUM_SWEEPS
             clust_sizes(c) = clust_sizes(c) + 1;
         end
     end
-   
+%     disp(lp');
+%     disp(K);
+%         assert(false);
+    
     % sample new cluster parameters from posterior
     for k = 1:K
         Xk = X(clusters == k, :);

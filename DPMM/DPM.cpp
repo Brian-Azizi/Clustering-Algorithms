@@ -97,7 +97,7 @@ arma::mat mvnRnd(arma::mat mu, arma::mat sigma)
   arma::uword D = sigma.n_rows;
   arma::mat A(D, D);
   bool b = arma::chol(A, sigma, "lower"); // b = true if cholesky was succesful
-
+ 
   if (!b) { 			// sigma is not positive definite;
     arma::mat E(D, D, arma::fill::eye);
     b = arma::chol(A, sigma + 0.0000000001*E, "lower"); // add slight perturbation to make it p.d. and try again
@@ -114,4 +114,50 @@ arma::mat mvnRnd(arma::mat mu, arma::mat sigma)
   arma::mat x = mu + A*z;
   
   return x;
+}
+
+
+// return a random, symmetric & positive definite DxD matrix, sampled from the inverse Wishart distribution with scale matrix S and df degrees of freedom
+// Assumes that S is a symmetric and positive definite DxD matrix and that DF >= D
+// see (Smith & Hocking, 1972)
+arma::mat invWishRnd(arma::mat S, double df)
+{
+  // Decompose S = A*A_transpose using cholesky
+  arma::uword D = S.n_rows;
+  arma::mat A(D, D);
+  bool b = arma::chol(A, S, "lower"); // b = true if cholesky was succesful
+
+  // if (!b) { 			// S is not positive definite;
+  //   arma::mat E(D, D, arma::fill::eye);
+  //   b = arma::chol(A, S + 0.0000000001*E, "lower"); // 
+  // }
+  
+  if (!b) {			// if chol failed again, S is not positive definite
+    throw std::runtime_error("S is not positive definite");
+  }
+
+  // create random DxD upper triangular matrix X
+  arma::mat X(D, D, arma::fill::zeros);
+  // fill diagonal of X with chi2 variates (sampled using gamma distribution)
+  arma::mat dummy(1,1);		// needed cos armadillo is silly
+  for (arma::uword j = 0; j < D; ++j) {
+    double a = 0.5 * (df - j);
+    double b = 2;
+    dummy = arma::randg(1, 1, arma::distr_param(a, b));
+    X(j,j) = sqrt(dummy(0,0));
+  }
+
+  // fill upper triangular part with N(0,1) samples
+  for (arma::uword i = 0; i < D; ++i) {
+    for (arma::uword j = i+1 ; j<D; ++j) {
+      X(i,j) = arma::randn();
+    }
+  }
+
+  // Desired value is A * inv(X' * X) * A'
+  arma::mat XX = X.t() * X;
+  arma::mat invXX = arma::inv(XX);
+  arma::mat W = A * invXX * A.t();
+
+  return W;
 }

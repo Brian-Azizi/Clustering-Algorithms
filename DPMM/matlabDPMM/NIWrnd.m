@@ -2,5 +2,8 @@
 
 function [mu, sigma] = NIWrnd(m, k, S, v)
 sigma = iwishrnd(S,v);      % matlab uses same parametrization
-mu = mvnrnd(m, sigma/k);
+%sigma = testiwrnd(S,v);
+%sigma = S;
+%mu = mvnrnd(m, sigma/k);
+mu = m;
 end
