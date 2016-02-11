@@ -1,5 +1,6 @@
 # Mini-Projects
-Mini-Projects for MPhil in Scientific Computing at Cambridge
+Mini-Projects for MPhil in Scientific Computing, University of Cambridge
+
 Implement and compare different methods for clustering:
 1) K-Means
 2) Mixture of Gaussians
