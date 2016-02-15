@@ -51,3 +51,6 @@ Mini 2:
 
 DIRICHLET 
 (infinite Mixture Model?)	 
+1) Essentially YWT's explanation
+2) Fitting the model: Gibbs (Neal)
+3) Description of Gauss Wishart flavoured DPM

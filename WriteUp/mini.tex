@@ -103,7 +103,7 @@
   Avenue, Cambridge. CB3 0HE}
 
 \begin{abstract}
-Abstract of the mini project. As part of the written assignment for the MPhil in Scientific Computing, I have implemented three clustering algorithms in the C++ programming language, the k-means algorithm, the Gaussian mixture model and the Dirichlet Process. Subsequently, the algorithms will be compared and texted on a number of data sets.
+Abstract of the mini project. As part of the written assignment for the MPhil in Scientific Computing, I have implemented three clustering algorithms in the C++ programming language, the k-means algorithm, the Gaussian mixture model and the Dirichlet Process mixture model. Subsequently, the algorithms will be compared and texted on a number of data sets.
 \end{abstract}
 
 \end{frontmatter}
@@ -116,23 +116,32 @@ Abstract of the mini project. As part of the written assignment for the MPhil in
 %% main text
 \section{Introduction}
 \label{sect:Intro}
-Clustering is part of unseupervised machine learning. Given a set of unlabeled data, the aim is to find clusters of data points, such that data points within a cluster are similar to each other and different to data points not in that cluster.
-A word on notation. Each training example is a vector in $D$-dimensional space, $\mathbb{R}^D$, and each component of the vector is a feature. A particular training example is denoted $\mathbf{x}^{(i)} \in \mathbb{R}^D$. The training examples are indexed by $i$ and we have $N$ training examples, thus $i \in \{1,2,\dots ,N\}$. The features are indexed with the letter $j$, $j \in \{1,2,\dots,D\}$. The letter $K$ is used to denote the number of clusters.
+The goal of \emph{clustering} is to discover structure in the data by identifying groups of similar data points. 
+Clustering has found applications in biology (gene clustering), market research (market segmentation), grouping similar news (news clustering, eg Google News) and image segmentation (which has applications in medicine).
 
-We will focus on three different clustering algorithms: K-means \cite{lloyd1982}, Gaussian mixtures and the Dirichlet Process. \emph{K-means} is arguably the least complex out of those three models. The number of clusters, $K$, is a hyper-parameter of the model that needs to be set by the user, thus making it a \emph{parametric model}. K-means assigns each data point to one of the clusters and gives us the location of each cluster. It performs \emph{hard clustering}, meaning each data point is assigned to a cluster without any measure of confidence. Contrast this with the \emph{Gaussian Mixture model} which supplies us with the probability of each data point belonging to each of the individual clusters. This \emph{soft clustering} is desirable, as it allows for \emph{anomaly detection}. However, the number of clusters is still set manually and different values for $K$ can lead to very different models. Our third model, the \emph{Dirichlet process}, deals with this problem by infering from the data what the optimal number of clusters is. It is a \emph{non-parametric} model.
+We begin by introducing a very simple clustering algorithm: K-Means. 
+Then we make a small digression to discuss the related problem of density estimation (and outlier detection) which will lead to the Mixture of Gaussians model.
+Finally, we take a Bayesian non-parametric approach and discuss the Dirichlet Process Mixture Model.
+
+Throughout this report, we assume we have a dataset $\{\boldsymbol x^{(i)}\}_{i=1}^N$ consisting of $N$ observations of a random variable $\boldsymbol x$ living in $D$-dimensional Euclidean space, $\mathbb{R}^D$.
  
-\section{K-Means Clustering}
-In K-Means, we explicitly choose the number of clusters, $K$, into which we would like to partition our data set. Intuitively, data points in the same cluster should have small distance between them compared to the distance of data points in different clusters. To this end, the K-Means method finds $K$ \emph{cluster centroids}, one for each cluster, and assigns a single label to every data point corresponding to the closest centroid. 
 
-We denote the $k$th centroid by $\boldsymbol{\mu}_k \in \mathbb{R}^D$, $k \in \{1, \dots, K\}$ and the label, or \emph{index}, of the $i$th example by $c^{(i)} \in \{1, \dots, K\}$. We can state the optimization objective of the K-Means method:
-\begin{equation}
-\begin{split}
-\min_{c^{(1)},\dots,c^{(N)},\boldsymbol{\mu}_1,\dots,\boldsymbol{\mu}_K} &J(c^{(1)},\dots,c^{(N)},\boldsymbol{\mu}_1,\dots,\boldsymbol{\mu}_K) \\
-&= \frac{1}{N}\sum_{i=1}^N ||\boldsymbol{x}^{(i)} - \boldsymbol{\mu}_{c^{(i)}}||^2
-\end{split}
-\label{eqn:kmeansCost}
-\end{equation}
-The objective function $J$ is sometimes referred to as the \emph{distortion measure} or the \emph{cost function}. We can use an iterative procedure to minimize $J$. We start out by choosing some initial values for the cluster centroids $\boldsymbol{\mu}_k$. In each iteration step, we first assign an index to each example that corresponds to the closest centroid. Subsequently, we update each centroid $\boldsymbol{\mu}_k$ by setting them equal to the mean of all examples that are currently assigned to their respective clusters $k$. We repeat these two steps until no more changes occur and we converge.
+
+
+
+\section{K-Means Clustering}
+\emph{K-Means} is the simplest clustering algorithm.
+We assume there exists $K$ clusters, and we introduce $K$ \emph{cluster centroids} $\boldsymbol \mu_k \in \mathbb{R}^D$.
+These centroids can be thought of as representatives of the individual clusters (or as their centres, as we will soon see).
+We denote the label, or \emph{cluster assignment}, of the $i$th training sample by $c^{(i)} \in \{1, \dots, K\}$. 
+
+\subsection{The K-Means algorithm}
+
+The K-Means algorithm begins with an initial guess for the $\boldsymbol \mu_k$. 
+We then repeat the following two steps until convergence.
+First, we assign each data point to the nearest cluster centroid.
+Second, we update each cluster centroid to be the mean of all the points assigned to them.
+Algorithm \ref{alg:kmeans} contains the pseudo-code.
 
 \begin{algorithm}
 \caption{K-Means algorithm}
@@ -141,7 +150,7 @@ The objective function $J$ is sometimes referred to as the \emph{distortion meas
 \Procedure{K-Means}{$X,K$}
 \State{Randomly initialize $K$ cluster centroids in $\mathbb{R}^D$}
 \Repeat
-\For{$i = 1:N$}
+\For{$i = 1:N$}\Comment
 \State{$c^{(i)} = \argmin_k ||\boldsymbol{x}_i - \boldsymbol{k}_k||$}
 \EndFor
 \For{$k = 1:K$}
@@ -154,7 +163,16 @@ The objective function $J$ is sometimes referred to as the \emph{distortion meas
 \end{algorithmic}
 \end{algorithm}
 
-In figure \ref{fig:kmeans1} we have set $K = 3$.
+\subsection{Convergence of K-Means}
+
+In order to show convergence, we can cast the K-Means problem into an optimization problem. Define the \emph{distortion function} 
+\begin{equation}
+J(\boldsymbol c, \boldsymbol \mu) = \sum_{i=1}^N ||\boldsymbol x^{(i)} - \boldsymbol \mu_{c^{(i)}}||^2
+\label{eqn:distortion}
+\end{equation}
+The K-Means problem is then equivalent to minimizing the distortion function and the K-Means algorithm corresponds to performing coordinate descent on $J(\boldsymbol c, \boldsymbol \mu)$.
+Thus, the algorithm is guaranteed to converge. 
+Figure \ref{fig:kmeans1} shows a result from running K-Means to convergence with $K = 3$.
 \begin{figure}
 \centering
 \includegraphics[width=3in]{kmeans1.png}
@@ -162,8 +180,115 @@ In figure \ref{fig:kmeans1} we have set $K = 3$.
 \label{fig:kmeans1}
 \end{figure}
 
+However, it is possible for the K-Means algorithm to get stuck in local optima.
+Figure \ref{fig:kmeans2} is the same as figure \ref{fig:kmeans1} but with a different initialization for the cluster centroids. 
+\begin{figure}
+\centering
+\includegraphics[width=3in]{kmeans2.png}
+\caption{Local optimum of K-Means algorithm ($K=3$).}
+\label{fig:kmeans2}
+\end{figure}
+In practice, we deal with this problem by performing several run of the entire K-Means algorithm, each with different initializations of the cluster centroids, and then choosing the output for which the distortion measure is smallest.
+
+Note on K-Medoids.
+
+\subsection{Model selection for K-Means}
+The K-means model has only one hyperparameter, namely the number of clusters $K$.
+In practice, $K$ is often chosen manually.
+In some applications, we have prior knowledge about the number of clusters.
+There exist some model selection tools, most notably the elbow method.
+If, during the algorithm, a cluster ends up being empty, we can either remove it or just randomly reinitialize the centroid.
+
+For more information on K-Means clustering, see \cite{Bishop}.
+
+
 \section{The Gaussian Mixture Model}
-The Gaussian Mixture Model (GMM) is perhaps the most widely used latent variable model for clustering. A common method for density estimation is to assume the data comes from a Gaussian distribution. One then proceeds to form the likelihood model and maximise it in order to get an estimate for the parameters of the model. In the GMM, we take this one step further and assume that the comes from one of $K$ possible Gaussians. For each sample $\boldsymbol x$, there is a corresponding \emph{latent variable} $\boldsymbol z$ that indicates which one of the Gaussians was responsible for $\boldsymbol x$.
+The Gaussian mixture model (GMM) (also known as mixtures of Gaussians) is the most widely used mixture model.
+Before we explore its applications to clustering, let us first discuss the related problem of density estimation.
+The goal of density estimation is to build the density $p(\boldsymbol x)$ of the random variable $\boldsymbol x \in \mathbb{R}^D$, given a set $\{\boldsymbol x^{(i)}\}_{i=1}^N$ of $N$ observations of $\boldsymbol x$.
+
+Once we have formed the density $p(\boldsymbol x)$, we can apply the model to the problem of \emph{anomaly detection}.
+Given a new observation $\boldsymbol x^{(N+1)}$, we flag it as an anomaly if $p(\boldsymbol x^{(N+1)}) < \epsilon$, where $\epsilon > 0$ is a pre-defined threshold.
+
+The classical approach to density estimation is to assume $p(\boldsymbol x)$ belongs to some parametric family of distributions and to then infer the parameters from the data using tools such as \emph{maximum likelihood estimation}. 
+
+\subsection{Modelling densities as mixtures of Gaussians}
+
+What do we do if our data does not seem to come from any of the standard distributions (eg figure \ref{fig:gmm1}).
+\begin{figure}
+\centering
+\includegraphics[width=3in]{gmm1.png}
+%\caption{}
+\label{fig:gmm1}
+\end{figure}
+One approach is to do non-parametric density estimation. A more straight forward strategy is to use a mixture model.
+In the GMM, we assume that the data was generated from $K$ distinct Gaussian \emph{base distributions}. 
+We do not know which Gaussian generated which data points, so we introduce the discrete latent variable $z^{(i)} \in \{1,2,\dots,K\}$ that tells us which cluster sample $\boldsymbol x^{(i)}$ belongs to.
+
+We assume that 
+\begin{equation}
+z \sim Discrete(\,\boldsymbol \pi)
+\label{eqnzdistro}
+\end{equation}
+\begin{equation}
+\boldsymbol x \,|\, z \sim \mathcal{N}(\,\boldsymbol{\mu_z}, \boldsymbol \Sigma_z)
+\label{eqn:x|z-distro}
+\end{equation}
+This means
+\begin{equation}
+p(z) = \pi_z, \qquad \pi_k > 0 \, \forall k \in \{1,\dots,K\}, \sum_{k=1}^K \pi_k = 1 
+\end{equation}
+\begin{equation}
+\begin{split}
+p(\boldsymbol x\,|\,z) &= \mathcal{N}(\boldsymbol x\,|\, \boldsymbol \mu_z, \boldsymbol \Sigma_z) \\
+&= \frac{1}{\sqrt{2\pi\,|\Sigma_z|}}\exp(-\frac{1}{2}(\boldsymbol x - \boldsymbol \mu_z)^T\boldsymbol \Sigma_z^{-1} (\boldsymbol x - \boldsymbol \mu_z))\\
+\end{split}
+\end{equation}
+
+From the sum rule and product rule of probability, we have
+\begin{equation}
+\begin{split}
+p(\boldsymbol x) &= \sum_z p(\boldsymbol x, z) \\
+&= \sum_z p(z)p(\boldsymbol x \,|\, z)\\
+&= \sum_{k=1}^K \pi_k \mathcal{N}(\boldsymbol x\,|\,\boldsymbol \mu_k, \boldsymbol \Sigma_k)
+\label{eqn:gmmdensity}
+\end{split}
+\end{equation}
+
+\subsection{The EM algorithm for the GMM}
+Given a training set $S$, how to we fit the model parameters $\{\pi_k, \boldsymbol \mu_k, \boldsymbol \Sigma_k; k=1,\dots,K\}$?
+	If the labels $z^{(i)}$ were observed, we could formulate the likelihood of the data \footnote{In this case the model is equivalent to the quadratic discriminant analysis model used for classification} 
+\begin{equation}
+\mathcal{L}(\pi_k, \boldsymbol \mu_k, \boldsymbol \Sigma_k) = \prod_{i=1}^N p(\boldsymbol x^{(i)},z^{(i)}\,|\,\pi_k, \boldsymbol \mu_k, \boldsymbol \Sigma_k)
+\label{eqn:LDAlikelihood}
+\end{equation}
+Maximising the likelihood would yield the following solutions for $k = 1,\dots,K$:
+\begin{equation}
+\begin{split}
+&\pi_k = \frac{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\}}{N}\\
+&\mu_k = \frac{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\} \boldsymbol{x}^{(i)}}{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\}}\\
+&\Sigma_k = \frac{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\} (\boldsymbol{x}^{(i)} - \boldsymbol \mu_k)(\boldsymbol{x}^{(i)} - \boldsymbol \mu_k)^T}{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\}}\\
+\end{split}
+\end{equation}
+(See the appendix for a derivation.)
+
+In the unsupervised setting, we do not observe the values of $z^{(i)}$. 
+Thus, the likelihood of our data now takes the form
+\begin{equation}
+	\mathcal{L}(\boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma) = \prod_{i=1}^N p(\boldsymbol x^{(i)}\,|\,\boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma)\\
+\label{eqn:gmmLikelihood}
+\end{equation}
+Taking logs on both side and using equation \ref{eqn:gmmdensity}, we can formulate our objective function as
+\begin{equation}
+\begin{split}
+\log\mathcal{L}(\boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma) &= \sum_{i=1}^N \log p(\boldsymbol x^{(i)}\,|\,\boldsymbol \pi \boldsymbol \mu, \boldsymbol \Sigma)\\
+&= \sum_{i=1}^N \log \left(\sum_{k=1}^K \pi_k \mathcal{N}(\boldsymbol x^{(i)}\,|\, \boldsymbol \mu_k, \boldsymbol \Sigma_k)\right)\\
+\end{split}
+\label{eqn:gmmlogLikelihood}
+\end{equation}
+
+Maximising this objective function directly is problematic due to summation inside the logarithm term and there is, in fact, no known closed form solution.
+Instead we us an iterative scheme in which we first formulate a ``guess" for the $z^{(i)}$ given our current parameter values and then find the optimal model parameters given our guess. 
 
 
 
@@ -177,15 +302,6 @@ and the effects of caffine on my ability to produce this report on time.
 
 \section{On the Derivation of the Quadratic Formula}
 \label{app:quad}
-The derivation of the quadratic formula is something that would not
-fit well within a paper as it would interrupt the flow of the argument
-therein. However, for those students who need a refresher on how the
-quadratic formula is derived, we give full details here:\par
-Assume that we have
-\begin{equation}
-p(x) = ax^2 + bx + c
-\end{equation}
-and so on. The actual algebra is left as an exercise for the reader.
 
 %% References
 %%
