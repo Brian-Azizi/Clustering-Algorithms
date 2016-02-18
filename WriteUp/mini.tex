@@ -41,6 +41,8 @@
 %% Declaring \argmin and \argmax operators:
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
+%% Declare trace operator \Tr:
+\DeclareMathOperator*{\Tr}{Tr}
 %% natbib.sty is loaded by default. However, natbib options can be
 %% provided with \biboptions{...} command. Following options are
 %% valid:
@@ -151,7 +153,7 @@ Algorithm \ref{alg:kmeans} contains the pseudo-code.
 \State{Randomly initialize $K$ cluster centroids in $\mathbb{R}^D$}
 \Repeat
 \For{$i = 1:N$}\Comment
-\State{$c^{(i)} = \argmin_k ||\boldsymbol{x}_i - \boldsymbol{k}_k||$}
+\State{$c^{(i)} = \argmin_k ||\boldsymbol{x}_i - \boldsymbol{k}_k||^2$}
 \EndFor
 \For{$k = 1:K$}
 \State{$N_k = \sum_{i=1}^N \mathbbm{1}\{c^{(i)} = k \}$}
@@ -190,14 +192,27 @@ Figure \ref{fig:kmeans2} is the same as figure \ref{fig:kmeans1} but with a diff
 \end{figure}
 In practice, we deal with this problem by performing several run of the entire K-Means algorithm, each with different initializations of the cluster centroids, and then choosing the output for which the distortion measure is smallest.
 
-Note on K-Medoids.
+We have described the K-Means algorithm using the squared Euclidean metric as a dissimilarity measure between data points.
+It is possible to formulate the algorithm using a general dissimilarity metric $V(\boldsymbol x, \boldsymbol x')$.
+In that case, the distortion function takes the form $J(\boldsymbol c, \boldsymbol \mu) = \sum_{i=1}^N V(\boldsymbol x^{(i)}, \boldsymbol \mu_{c^{(i)}})$.
+The algorithm is then known as \emph{K-Medoids}.
 
 \subsection{Model selection for K-Means}
 The K-means model has only one hyperparameter, namely the number of clusters $K$.
 In practice, $K$ is often chosen manually.
 In some applications, we have prior knowledge about the number of clusters.
-There exist some model selection tools, most notably the elbow method.
-If, during the algorithm, a cluster ends up being empty, we can either remove it or just randomly reinitialize the centroid.
+
+There exist some model selection tools, most notably the ``elbow method" (also known as the ``kink method").
+We run the K-Means algorithm for $1 \leq K \leq K_{max}$ (where $K_{max}$ is some user-defined maximum value for $K$).
+For each run, we save the final value of the distortion function (performing multiple random initializations to ensure a good optimum if necessary).
+Finally, we plot the optimal values of the distortion function against $K$.
+Sometimes, it is possible to identify a distinct ``kink" (i.e. the ``elbow") in the curve.
+In that case, we set $K$ to the value at which the kink occurs.
+The intuition is that, if there is some true number of clusters $K^*$, we would expect a steep slope in the elbow curve for $K < K^*$.
+If we set $K > K^*$, we are splitting groups of data points that belong to the same cluster. Thus, we would expect only a small reduction in the distortion compared to $K^*$.
+
+It is possible for a cluster to become empty during the algorithm.
+In that case, we can either remove it or randomly reinitialize the centroid.
 
 For more information on K-Means clustering, see \cite{Bishop}.
 
@@ -265,6 +280,7 @@ Given a training set $S$, how to we fit the model parameters $\{\pi_k, \boldsymb
 Maximising the likelihood would yield the following solutions for $k = 1,\dots,K$:
 \begin{equation}
 \begin{split}
+\label{eqn:LDAstats}
 &\pi_k = \frac{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\}}{N}\\
 &\mu_k = \frac{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\} \boldsymbol{x}^{(i)}}{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\}}\\
 &\Sigma_k = \frac{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\} (\boldsymbol{x}^{(i)} - \boldsymbol \mu_k)(\boldsymbol{x}^{(i)} - \boldsymbol \mu_k)^T}{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\}}\\
@@ -288,8 +304,222 @@ Taking logs on both side and using equation \ref{eqn:gmmdensity}, we can formula
 \end{equation}
 
 Maximising this objective function directly is problematic due to summation inside the logarithm term and there is, in fact, no known closed form solution.
-Instead we us an iterative scheme in which we first formulate a ``guess" for the $z^{(i)}$ given our current parameter values and then find the optimal model parameters given our guess. 
+Instead we use an iterative scheme in which we first formulate a ``guess" for the $z^{(i)}$ given our current parameter values and then find the optimal model parameters given our guess. 
 
+Formally, we build the \emph{responsibility} that cluster $k$ takes for explaning sample $\boldsymbol x^{(i)}$, denoted $\gamma_k^{(i)}$.
+This is defined to be the posterior probabibility that $z^{(i)} = k$:
+\begin{equation}
+\label{eqn:gmmresponsibility}
+\begin{split}
+y_k^{(i)} &= p(z^{(i)}=k\,|\,\boldsymbol x^{(i)}; \boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma)\\
+	&= \frac{p(z^{(i)}=k;\boldsymbol \pi)p(\boldsymbol x^{(i)}\,|\,z^{(i)}=k;\boldsymbol \mu, \boldsymbol \Sigma)}
+	{\sum_{j=1}^K p(z^{(i)}=j;\boldsymbol \pi)p(\boldsymbol x^{(i)}\,|\,z^{(i)}=j;\boldsymbol \mu, \boldsymbol \Sigma)}\\
+	&= \frac{\pi_k\mathcal{N}(\boldsymbol x^{(i)}\,|\,\boldsymbol \mu_k, \boldsymbol \Sigma_k)}
+	{\sum_{j=1}^K \pi_j\mathcal{N}(\boldsymbol x^{(i)}\,|\,\boldsymbol \mu_j, \boldsymbol \Sigma_j)}
+\end{split}
+\end{equation}
+
+Once we have calculated the responsibilities, we can use them to update our model parameters.
+\begin{equation}
+\label{eqn:gmmstats}
+\begin{split}
+\pi_k &= \frac{\sum_{i=1}^N \gamma_k^{(i)}}{N}\\
+\boldsymbol \mu_k &= \frac{\sum_{i=1}^N \gamma_k^{(i)} \boldsymbol x^{(i)}}{\sum_{i=1}^N \gamma_k^{(i)}}\\
+\boldsymbol \Sigma_k &= \frac{\sum_{i=1}^N \gamma_k^{(i)}(\boldsymbol x^{(i)} - \boldsymbol \mu_k)(\boldsymbol x^{(i)} - \boldsymbol \mu_k)^T}{\sum_{i=1}^N \gamma_k^{(i)}}\\
+\end{split}
+\end{equation}
+Note that we use the new value of $\boldsymbol \mu_k$ to calculate $\boldsymbol \Sigma_k$ in equation \ref{eqn:gmmstats}.
+We iterate these two steps until convergence.
+The typical convergence criterion is that changes in the loglikelihood are below some threshold.
+
+Note the similarity with equation \ref{eqn:LDAstats}.
+We have essentially replaced the indicators with \emph{soft weights} $\gamma_k^{(i)}$.
+In the limit in which we observe $z^{(i)}$, we put all the probability mass on the observed value of $z^{(i)}$ and obtain $\gamma_k^{(i)} = \mathbbm{1}\{z^{(i)} = k\}$.
+
+The algorithm above is a particular instance of the \emph{Expectation-Maximization (EM)} algorithm.
+Equation \ref{eqn:gmmresponsibility} corresponds to the \emph{expectation step (E-step)} and equation \ref{eqn:gmmstats} corresponds to the \emph{maximization step (M-Step)} of the EM algorithm.
+We will discuss the EM algorithm in more detail in the next section and also derive equations \ref{eqn:gmmresponsibility} and \ref{eqn:gmmstats}.
+The pseudo-code for fitting the model parameters for the GMM can be found in algorithm \ref{alg:gmm}.
+
+\begin{algorithm}
+\caption{EM algorithm for GMM}
+\label{alg:gmm}
+\begin{algorithmic}[1]
+\Procedure{EM for GMM}{$\boldsymbol X,K$}
+\State{Randomly initialize $(\pi_k, \boldsymbol \mu_k, \boldsymbol \Sigma_k)$ for $k=1,\dots,K$}
+\Repeat
+\For{$i = 1:N$}\Comment{E-Step}
+\State{$\gamma_k^{(i)} = \frac{\pi_k\mathcal{N}(\boldsymbol x^{(i)}\,|\,\boldsymbol \mu_k, \boldsymbol \Sigma_k)}
+	{\sum_{j=1}^K \pi_j\mathcal{N}(\boldsymbol x^{(i)}\,|\,\boldsymbol \mu_j, \boldsymbol \Sigma_j)}$}
+\EndFor
+\For{$k = 1:K$}\Comment{M-Step}
+\State{$\pi_k = \frac{\sum_{i=1}^N \gamma_k^{(i)}}{N}$}
+\State{$\boldsymbol \mu_k = \frac{\sum_{i=1}^N \gamma_k^{(i)} \boldsymbol x^{(i)}}{\sum_{i=1}^N \gamma_k^{(i)}}$}
+\State{$\boldsymbol \Sigma_k = \frac{\sum_{i=1}^N \gamma_k^{(i)}(\boldsymbol x^{(i)} - \boldsymbol \mu_k)(\boldsymbol x^{(i)} - \boldsymbol \mu_k)^T}{\sum_{i=1}^N \gamma_k^{(i)}}$}
+\EndFor
+\Until{Convergence}
+\EndProcedure \\
+	\Return{$\{(\gamma^{(1)}_k, \dots, \gamma^{(N)}_k, \pi_k, \boldsymbol \mu_k, \boldsymbol \Sigma_k), \quad k = 1,\dots,K\}$}
+\end{algorithmic}
+\end{algorithm}
+
+
+\subsection{The EM algorithm: General setting}
+The EM algorithm is powerful variational technique that is very popular in latent variable models.
+In the general framework, we have a model for the joint distribution $p(x,z;\theta)$ (which is parameterized by $\theta$) but we only observe $x$.
+Given a training data set $S=\{x^{(1)},\dots,x^{(N)}\}$, we would like to find the parameters $\theta$ that maximise the log likelihood of the data
+\begin{equation}
+\label{eqn:EMlikelihood}
+\begin{split}
+l(\theta) &= \sum_{i=1}^N \log p(x^{(i)};\theta)\\
+&= \sum_{i=1}^N \log \sum_{z^{(i)}} p(x^{(i)},z^{(i)};\theta)
+\end{split}
+\end{equation}
+The EM algorithm solves this problem in two steps.
+In the expectation step, it forms a function that is a lower bound to $l(\theta)$ and that is tight at the current value of $\theta$.
+In the maximization step, it finds $\theta$ that maximizes this lower bound.
+This guarantees that we increase the value of $l(\theta)$ in each step (unless we are already at a maximum).
+
+Let $Q_i(z^{(i)})$ be a probability measure on $z^{(i)}$, i.e. $Q_i(z^{(i)}) \geq 0$ and $\sum_{z^{(i)}} Q_i(z^{(i)}) = 1$. We can then express our objective function as
+\begin{equation}
+\begin{split}
+l(\theta) &= \sum_{i=1}^N \log \sum_{z^{(i)}} p(x^{(i)},z^{(i)};\theta)\\
+&= \sum_{i=1}^N \log \sum_{z^{(i)}} Q_i(z^{(i)}) \frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\\
+&= \sum_{i=1}^N \log \mathbb{E}_{z^{(i)} \sim Q_i}\left[\frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\right]\\
+\end{split}
+\end{equation}
+
+where we used the definition of the expectation operator. To proceed, we make use of \emph{Jensen's Inequality}: Let $X$ be a random variable and $f$ a convex function. Then
+\begin{equation}
+f(\mathbb{E}[X]) \leq \mathbb{E}[f(X)]
+\label{eqn:jensen}
+\end{equation}
+Further, if $f$ is strictly convex, then 
+\begin{equation}
+\mathbb{E}[f(X)] = f(\mathbb{E}[X]) \iff p(X = E[X]) = 1
+\label{eqn:jensentight}
+\end{equation}
+If $f$ is concave, then $-f$ is convex and thus the inequality is reversed.
+
+By strict concavity of the log function, we thus have
+\begin{equation}
+\begin{split}
+l(\theta) &=  \sum_{i=1}^N \log \mathbb{E}_{z^{(i)} \sim Q_i}\left[\frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\right]\\
+&\geq \sum_{i=1}^N \mathbb{E}_{z^{(i)} \sim Q_i}\left[\log \frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\right]\\ 
+&= \sum_{i=1}^N \sum_{z^{(i)}} Q_i(z^{(i)}) \log \frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\\ 
+&= J(\theta,Q)
+\end{split}
+\end{equation}
+
+where $Q=\{Q_1,\dots,Q_N\}$ and $J(\theta,Q)$ is a lower bound to $l(\theta)$ for all valid sets of probability measures $Q$.
+We want to choose $Q_i$ such that the bound is tight at the current value of $\theta$.
+Thus $p(x^{(i)},z^{(i)})/Q_i(z^{(i)})$ should be constant for all values of $z^{(i)}$. This implies that
+\begin{equation}
+\begin{split}
+Q_i(z^{(i)}) &\propto p(x^{(i)},z^{(i)};\theta)\\
+\Rightarrow Q_i(z^{(i)}) &= \frac{p(x^{(i)},z^{(i)};\theta)}{\sum_{z^{(i)}}p(x^{(i)},z^{(i)};\theta)}\\
+&= \frac{p(x^{(i)},z^{(i)};\theta)}{p(x^{(i)};\theta)}\\
+&= p(z^{(i)}\,|\,x^{(i)};\theta);
+\end{split}
+\end{equation}
+where the second line follows from the normalization constraint on $Q_i$, the third line from the sum rule of probability and the fourth line from the definition of conditional probabilities.
+
+This completes the E-Step of the EM algorithm.
+In the M-Step, we maximise $J(\theta,Q) = \sum_{i=1}^N \sum_{z^{(i)}} Q_i(z^{(i)}) \log \left(p(x^{(i)},z^{(i)};\theta)/Q_i(z^{(i)})\right)$ with respect to $\theta$, keeping $Q_i = p(z^{(i)}\,|\,x^{(i)};\theta)$ fixed.\footnote{Thus, the EM algorithm is analogous to coordinate ascent on $J(\theta,Q)$}.
+See algorithm \ref{alg:EM} for a summary.
+
+\begin{algorithm}
+\caption{EM algorithm}
+\label{alg:EM}
+\begin{algorithmic}[1]
+\Procedure{EM}{$\boldsymbol X,K$}
+\State{Randomly initialize $\theta$}
+\Repeat
+\State{E-Step:}
+\For{$i = 1:N$}
+\State{Set $Q_i(z^{(i)}) = p(z^{(i)}\,|\,x^{(i)};\theta)$}
+\EndFor
+\State{M-Step:}
+\State{$\theta = \argmax_\theta \sum_{i=1}^N \sum_{z^{(i)}} Q_i(z^{(i)}) \log \frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}$}
+\Until{Convergence}
+\EndProcedure \\
+\Return{$(\theta,\{(z^{(1)}, \dots, z^{(N)}\})$}
+\end{algorithmic}
+\end{algorithm}
+
+In the Gaussian mixture model, for the E-step we have
+\begin{equation}
+\label{eqn:gmmE}
+\begin{split}
+Q_i(z^{(i)} = k) &= p(z^{(i)} = k\,|\,\boldsymbol x^{(i)}; \boldsymbol \pi, \boldsymbol \mu \boldsymbol \Sigma)\\
+&= p(z^{(i)}=k\,|\,\boldsymbol x^{(i)}; \boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma)\\
+&= \frac{p(z^{(i)}=k;\boldsymbol \pi)p(\boldsymbol x^{(i)}\,|\,z^{(i)}=k;\boldsymbol \mu, \boldsymbol \Sigma)}
+{\sum_{j=1}^K p(z^{(i)}=j;\boldsymbol \pi)p(\boldsymbol x^{(i)}\,|\,z^{(i)}=j;\boldsymbol \mu, \boldsymbol \Sigma)}\\
+&= \frac{\pi_k\mathcal{N}(\boldsymbol x^{(i)}\,|\,\boldsymbol \mu_k, \boldsymbol \Sigma_k)}
+{\sum_{j=1}^K \pi_j\mathcal{N}(\boldsymbol x^{(i)}\,|\,\boldsymbol \mu_j, \boldsymbol \Sigma_j)} = \gamma_k^{(i)}
+\end{split}
+\end{equation}
+
+While in the M-Step we want to find $\pi_k$, $\boldsymbol \mu_k$ and $\boldsymbol \Sigma_k$ that maximize
+\begin{equation}
+\label{eqn:gmmM1}
+\begin{split}
+J(\boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma, \boldsymbol \gamma) &= \sum_{i=1}^N\sum_{z^{(i)}} Q_i(z^{(i)}) \log \frac{p(\boldsymbol x^{(i)},z^{(i)};\boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma)}{Q_i(z^{(i)})}\\
+&= \sum_{i=1}^N \sum_{k=1}^K \gamma_k^{(i)} \log \frac{\pi_j \mathcal{N}(\boldsymbol x^{(i)} \,|\, \boldsymbol \mu_k, \boldsymbol \Sigma_k)}{\gamma_k^{(i)}}\\
+\end{split}
+\end{equation}
+Setting the derivative with respect to $\boldsymbol \mu_k$ equal to zero gives
+\begin{equation}
+\begin{split}
+\label{eqn:gmmMu}
+\nabla_{\boldsymbol \mu_k} J &= \sum_{i=1}^N -\frac{1}{2}\gamma_k^{(i)} \nabla_{\boldsymbol \mu_k} (\boldsymbol x^{(i)} - \boldsymbol \mu_k)^T \boldsymbol \Sigma^{-1}(\boldsymbol x^{(i)} - \boldsymbol \mu_k)\\
+&= \sum_{i=1}^N -\frac{1}{2}\gamma_k^{(i)}(\boldsymbol \Sigma_k^{-1} + \boldsymbol \Sigma_k^{-T})(\boldsymbol \mu_k - \boldsymbol x^{(i)})\\
+&= \sum_{i=1}^N\gamma_k^{(i)} \boldsymbol \Sigma^{-1} (\boldsymbol x^{(i)} - \boldsymbol \mu_k) = 0\\
+\Rightarrow \boldsymbol \mu_k &= \frac{\sum_{i=1}^N\gamma_k^{(i)} \boldsymbol x^{(i)}}{\sum_{i=1}^N \gamma_k^{(i)}}
+\end{split}
+\end{equation}
+To find the optimal $\boldsymbol \Sigma_k$, we note that this equivalent to finding $\boldsymbol \Sigma_k^{-1}$ that maximizes $J$:
+\begin{equation}
+\label{eqn:gmmSigma}
+\begin{split}
+\nabla_{\boldsymbol \Sigma_k^{-1}} J &= \sum_{i=1}^N \gamma_k^{(i)}(\frac{1}{2}\nabla_{\boldsymbol \Sigma_k^{-1}}(\log |\boldsymbol \Sigma_k^{-1}| - (\boldsymbol x^{(i)} - \boldsymbol \mu_k)^T \boldsymbol \Sigma_k^{-1}(\boldsymbol x^{(i)} - \boldsymbol \mu_k))\\
+&= \sum_{i=1}^N \gamma_k^{(i)} \frac{1}{2}(\boldsymbol \Sigma_k - (\boldsymbol x^{(i)} - \boldsymbol \mu_k)(\boldsymbol x^{(i)} - \boldsymbol \mu_k)^T) = 0\\
+\Rightarrow \boldsymbol \Sigma_k &= \frac{\sum_{i=1}^N \gamma_k^{(i)}(\boldsymbol x^{(i)} - \boldsymbol \mu_k)(\boldsymbol x^{(i)} - \boldsymbol \mu_k)^T}{\sum_{i=1}^N \gamma_k^{(i)}}
+\end{split}
+\end{equation}
+The mixing coefficients $\boldsymbol \pi$ must satisfy the constraint $\sum_{k=1}^K \pi_k = 1$.
+We use the method of Lagrange multipliers to perform the constrained optimization.
+Let $\lambda > 0$ denote the Lagrange multiplier.
+To find the optimal coefficients $\pi_k$, we set the derivative of $(J(\boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma, \boldsymbol \gamma) + \lambda(1-\sum_{k=1}^K \pi_k))$ with respect to $\pi_k$ to zero.
+\begin{equation}
+\label{eqn:gmmPi1}
+\begin{split}
+\frac{\partial}{\partial \pi_k}(J + \lambda(1 - \sum_{k=1}^K \pi_k)) &= \sum_{i=1}^N\gamma_k^{(i)} \frac{\partial}{\partial \pi_k} \log \pi_k - \lambda\\
+&= \sum_{i=1}^N \frac{\gamma_k^{(i)}}{\pi_k} - \lambda = 0\\
+\Rightarrow \pi_k = \frac{\sum_{i=1}^N\gamma_k^{(i)}}{\lambda}
+\end{split}
+\end{equation}
+Taking the sum over $k$ on both sides gives
+\begin{equation}
+\label{eqn:gmmPi2}
+\begin{split}
+1 &= \frac{\sum_{i=1}^N \sum_{k=1}^K \gamma_k^{(i)}}{\lambda}\\
+\Rightarrow \lambda &= \sum_{i=1}^N \sum_{k=1}^K \gamma_k^{(i)}\\
+&= \sum_{i=1}^N 1 = N
+\end{split}
+\end{equation}
+Since $\sum_{k=1}^K \gamma_k^{(i)} = \sum_{k=1}^K p(z^{(i)} = k\,|\,\boldsymbol x^{(i)}) = 1$.
+Thus,
+\begin{equation}
+\pi_k = \frac{\sum_{i=1}^N \gamma_k^{(i)}}{N}.
+\label{eqn:gmmPi3}
+\end{equation}
+
+\subsection{Model Selection in the Gaussian mixture model}
+probabilistic approach.
+local optima.
+
+\subsection{KMeans as limit of GMM}
 
 
 \section*{Acknowledgements}
