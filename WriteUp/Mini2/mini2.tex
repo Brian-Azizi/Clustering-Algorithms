@@ -1,0 +1,245 @@
+\documentclass[final,3p,times,twocolumn]{elsarticle}
+
+%% Use the option review to obtain double line spacing
+%% \documentclass[preprint,review,12pt]{elsarticle}
+
+%% Use the options 1p,twocolumn; 3p; 3p,twocolumn; 5p; or 5p,twocolumn
+%% for a journal layout:
+%% \documentclass[final,1p,times]{elsarticle}
+%% \documentclass[final,1p,times,twocolumn]{elsarticle}
+%% \documentclass[final,3p,times]{elsarticle}
+%% \documentclass[final,3p,times,twocolumn]{elsarticle}
+%% \documentclass[final,5p,times]{elsarticle}
+%% \documentclass[final,5p,times,twocolumn]{elsarticle}
+
+%% if you use PostScript figures in your article
+%% use the graphics package for simple commands
+%% \usepackage{graphics}
+%% or use the graphicx package for more complicated commands
+%% \usepackage{graphicx}
+%% or use the epsfig package if you prefer to use the old commands
+%% \usepackage{epsfig}
+
+%% The amssymb package provides various useful mathematical symbols
+\usepackage{amssymb}
+%% The amsthm package provides extended theorem environments
+%% \usepackage{amsthm}
+%% The bm package lets you access bold symbols in math mode using the \boldsymbol command (useful to get bold greek letters).
+\usepackage{bm}
+%% The bbm package is contains the indicator function symbol \mathbbm{1}
+\usepackage{bbm}
+%% The amsmath package contains the split environment, letting you split equations into multiple lines.
+%% See "https://www.sharelatex.com/learn/Aligning_equations_with_amsmath " for an explanation.
+\usepackage{amsmath}
+%% The lineno packages adds line numbers. Start line numbering with
+%% \begin{linenumbers}, end it with \end{linenumbers}. Or switch it on
+%% for the whole article with \linenumbers after \end{frontmatter}.
+%% \usepackage{lineno}
+%% The algorithm defines the algorithm floating environment and the algpseudocode package is useful for constructing Pseudo code.
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+%% Declaring \argmin and \argmax operators:
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+%% Declare trace operator \Tr:
+\DeclareMathOperator*{\Tr}{Tr}
+%% Declare pdf functions
+\DeclareMathOperator*{\Dir}{Dir}
+%% shorthand for \boldsymbol
+\let\bs\boldsymbol
+%% natbib.sty is loaded by default. However, natbib options can be
+%% provided with \biboptions{...} command. Following options are
+%% valid:
+
+%%   round  -  round parentheses are used (default)
+%%   square -  square brackets are used   [option]
+%%   curly  -  curly braces are used      {option}
+%%   angle  -  angle brackets are used    <option>
+%%   semicolon  -  multiple citations separated by semi-colon
+%%   colon  - same as semicolon, an earlier confusion
+%%   comma  -  separated by comma
+%%   numbers-  selects numerical citations
+%%   super  -  numerical citations as superscripts
+%%   sort   -  sorts multiple citations according to order in ref. list
+%%   sort&compress   -  like sort, but also compresses numerical citations
+%%   compress - compresses without sorting
+%%
+%% \biboptions{comma,round}
+
+% \biboptions{}
+
+
+\journal{MPhil in Scientific Computing}
+
+\begin{document}
+
+\begin{frontmatter}
+
+%% Title, authors and addresses
+
+%% use the tnoteref command within \title for footnotes;
+%% use the tnotetext command for the associated footnote;
+%% use the fnref command within \author or \address for footnotes;
+%% use the fntext command for the associated footnote;
+%% use the corref command within \author for corresponding author footnotes;
+%% use the cortext command for the associated footnote;
+%% use the ead command for the email address,
+%% and the form \ead[url] for the home page:
+%%
+%% \title{Title\tnoteref{label1}}
+%% \tnotetext[label1]{}
+%% \author{Name\corref{cor1}\fnref{label2}}
+%% \ead{email address}
+%% \ead[url]{home page}
+%% \fntext[label2]{}
+%% \cortext[cor1]{}
+%% \address{Address\fnref{label3}}
+%% \fntext[label3]{}
+
+\title{Mini Project: Implementation and comparison of the Gaussian Mixture model, the K-means algorithm and the Dirichlet Process}
+
+%% use optional labels to link authors explicitly to addresses:
+%% \author[label1,label2]{<author name>}
+%% \address[label1]{<address>}
+%% \address[label2]{<address>}
+
+\author{Brian Azizi}
+
+\address{Cavendish Laboratory, Department of Physics, J J Thomson
+  Avenue, Cambridge. CB3 0HE}
+
+\begin{abstract}
+Abstract of the mini project. As part of the written assignment for the MPhil in Scientific Computing, I have implemented three clustering algorithms in the C++ programming language, the k-means algorithm, the Gaussian mixture model and the Dirichlet Process mixture model. Subsequently, the algorithms will be compared and texted on a number of data sets.
+\end{abstract}
+
+\end{frontmatter}
+
+%%
+%% Start line numbering here if you want
+%%
+% \linenumbers
+
+%% main text
+\section{Introduction}
+\label{sect:Intro}
+The goal of \emph{clustering} is to discover structure in the data by identifying groups of similar data points. 
+Clustering has found applications in biology (gene clustering), market research (market segmentation), grouping similar news (news clustering, eg Google News) and image segmentation (which has applications in medicine).
+
+We begin by introducing a very simple clustering algorithm: K-Means. 
+Then we make a small digression to discuss the related problem of density estimation (and outlier detection) which will lead to the Mixture of Gaussians model.
+Finally, we take a Bayesian non-parametric approach and discuss the Dirichlet Process Mixture Model.
+
+Throughout this report, we assume we have a dataset $\{\boldsymbol x^{(i)}\}_{i=1}^N$ consisting of $N$ observations of a random variable $\boldsymbol x$ living in $D$-dimensional Euclidean space, $\mathbb{R}^D$.
+ 
+
+\section{Dirichlet Process Mixture Model}
+The \emph{Dirichlet Process (DP)} is a distribution over distributions.
+This means that draws from the DP are probability measures, i.e. functions that satisfy the axioms of probability.
+Furthermore, as we will see, these draws from a DP turn out to be \emph{discrete} measures that out probability mass on a number of points that is almost surely finite.
+Thus, if draws from these measures will eventually lead to seeing repeated values. 
+This feature of DPs allows for their use in clustering via the \emph{Dirichlet Process Mixture Model (DPMM)}.
+DPs have been described from many different angles.
+We will first give a description of their mathematical properties.
+We then give the Polya urn interpretation, highlighting the fact that draws from a DP are discrete measures.
+Next, we explain the Chinese Restaurant Problem and explain the clustering property of DPs. 
+Finally, we use the stick-breaking construction of DPs to ``prove" their existence and emphasize their discreteness property.
+We then describe the application of DPs to density estimation and to clustering. 
+Here we will also describe a particular inference method for DPMMs based on Gibbs sampling.
+In the final section, we descibe our implementation, test the model and compare it to other clustering algorithms.
+
+\subsection{Mathematical Definition of Dirichlet Process}
+The Dirichlet Process is a stochastic process whose sample paths are (almost surely) probability measures over some space $\Theta$.
+Intuitively, we can think of a stochastic process as a probability distribution, with the difference that its samples are random functions (with domain $\Theta$), rather than random values in $\Theta$.
+These random functions are referred to as \emph{sample paths}.
+The sample paths of a DP are functions that satisfy several additional conditions that allow them to be used as \emph{probability measures}. 
+So if $G$ is a sample drawn from a DP, then $G(\theta) \in [0,1]$, with $G(\emptyset) = 0$ and $G(\Theta) = 1$, and for $G$ satisfies the \emph{countable additivity} property meaning that for all countable collections $\{A_i\}$ of pairwise disjoint sets, we have $G(\cup A_i) = \sum G(A_i)$.
+In practice, it is safe to think of $G$ as a probability mass function (pmf) or probability density function (pdf) (though we will see later in the Polya Urn representation and in the stick-breaking construction of DPs, that G is, in fact, a discrete probability distribution).
+
+\subsubsection{The Dirichlet Distribution}
+Before delving further into the Dirichlet Process, we will give a short desciption of a particular family of probability density functions known as the \emph{Dirichlet distribution}.
+
+The Dirichlet distribution has support over the \emph{probability simplex}, defined by
+\begin{equation}
+S_K = \{\boldsymbol x : 0 \leq x_k \leq 1, \sum_{k=1}^K x_k = 1\}
+\label{eqn:simplex}
+\end{equation}
+The pdf of the Dirichlet distribution is given by 
+\begin{equation}
+\label{eqn:dirpdf}
+\Dir(\bs x \,|\, \boldsymbol \alpha) = \frac{\mathbbm{1}\{\boldsymbol x \in S_K\}}{B(\boldsymbol \alpha)}\prod_{k=1}^K x_k^{\alpha_k - 1}
+\end{equation}
+where $B(\boldsymbol \alpha)$ is the \emph{multivariate beta function} defined by
+\begin{equation}
+\label{eqn:mvbeta}
+B(\bs \alpha) = \frac{\prod_{k=1}^K \Gamma(\alpha_k)}{\Gamma(\alpha_0)},
+\qquad \alpha_0 = \sum_{k=1}^K \alpha_k
+\end{equation}
+and $\Gamma(t)$ is the \emph{Gamma function}:
+\begin{equation}
+\label{eqn:gamma}
+\Gamma(t) = \int_0^\infty x^{t-1}e^{-x}dx
+\end{equation}
+
+Let $\bs \pi$ be a sample drawn from the Dirichlet distribution, $\bs \pi \sim \Dir(\bs \alpha)$.
+Since $\bs \pi$ lives on the probability simplex $S_K$, we can interpret $\bs \pi$ as a probability distribution of a discrete random variable with $K$ possible states.
+For instance let $z$ be a random variable taking values in $\{1, \dots, K\}$.
+The distribution defined by $p(z = k \,|\, \bs \pi) = \pi_k$ would be a well-defined distribution for all possible draws of $\bs \pi \sim \Dir(\bs \alpha)$.
+Due to this property, the Dirichlet distribution is sometimes called a ``distribution over distributions".
+
+The Dirichlet distribution is often used in bayesian models of discrete random variables. 
+
+\subsubsection{Definition of Dirichlet Processes}
+Having defined the Dirichlet distribution, we may proceed with the definition of the Dirichlet process.
+Formally, a Dirichlet process is specified by a \emph{concentration parameter} $\alpha \in \mathbb{R}$, $\alpha > 0$, and a \emph{base distribution} $H$.
+$H$ is a probability distribution over $\Theta$.
+
+Let $G$ be a random probability distribution drawn from a Dirichlet Process with concentration parameter $\alpha$ and base distribution $H$, written $G \sim DP(\alpha, H)$.
+The Dirichlet process is defined implicitly by the requirement that $(G(A_1),G(A_2),\dots,G(A_r)) \sim \Dir(\alpha H(A_1),\dots, \alpha H(A_r))$, for every finite measurable partition $(A_1,\dots,A_r)$ of $\Theta$.
+
+See \cite{Murphy}
+
+\section*{Acknowledgements}
+Here I acknowledge the assistance of my supervisor, my industrial sponsor,
+and the effects of caffine on my ability to produce this report on time.
+
+%% The Appendices part is started with the command \appendix;
+%% appendix sections are then done as normal sections
+\appendix
+
+\section{Derivation of GMM with known cluster identities}
+\label{app:gmm}
+
+%% References
+%%
+%% Following citation commands can be used in the body text:
+%% Usage of \cite is as follows:
+%%   \cite{key}         ==>>  [#]
+%%   \cite[chap. 2]{key} ==>> [#, chap. 2]
+%%
+
+%% References with bibTeX database:
+\section*{Bibliography}
+\bibliographystyle{elsarticle-num}
+\bibliography{references.bib}
+
+%% Authors are advised to submit their bibtex database files. They are
+%% requested to list a bibtex style file in the manuscript if they do
+%% not want to use elsarticle-num.bst.
+
+%% References without bibTeX database:
+
+% \begin{thebibliography}{00}
+
+%% \bibitem must have the following form:
+%%   \bibitem{key}...
+%%
+
+% \bibitem{}
+
+% \end{thebibliography}
+
+
+\end{document}
+
+%%
+%% End of file `mini.tex'.
