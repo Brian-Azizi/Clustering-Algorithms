@@ -1,4 +1,4 @@
-X = mini2
+X = dpm
 
 mini.pdf : $(X).tex references.bib
 	pdflatex $(X).tex
