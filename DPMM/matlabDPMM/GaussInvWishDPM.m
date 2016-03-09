@@ -13,16 +13,19 @@
 %X = load('../X3.dat');
 
 % Use toyclusters
-% X = load('../../data_files/toyclusters/toyclusters.dat');
+X = load('../../data_files/toyclusters/toyclusters.dat');
 %[X, m, invMat, whMat] = whiten(XX);
 
 % Fisher Iris Data
-load fisheriris
-X = meas;
+% load fisheriris
+% X = meas;
+
+% MNIST DATA
+%X = load('../../data_files/MNIST/MNIST.dat');
 
 % Initialize everything
 [N, D] = size(X);
-K = N;
+K = 1;
 
 clusters = zeros(N, 1);        % Contains cluster assignments
 for i = 1:N
@@ -62,7 +65,7 @@ k_0 = 0.01;
 NUM_SWEEPS = 200;
 SAVE_CHAIN = false;
 if SAVE_CHAIN
-    BURN_IN = 50;
+    BURN_IN = NUM_SWEEPS - 10;
     chain_K = zeros(1, NUM_SWEEPS - BURN_IN);
     chain_c = zeros(N, NUM_SWEEPS - BURN_IN);
     chain_cn = zeros(N, NUM_SWEEPS - BURN_IN);
@@ -103,7 +106,8 @@ for sweep = 1:NUM_SWEEPS
         end
         lp = log(p(1:end-1));
         
-            % p(new cluster): find partition function     
+            % p(new cluster): find partition function  
+        tic;
         dummy_mu = zeros(D,1);
         dummy_sigma = eye(D);
         [~, logprior] = NIWpdf(dummy_mu,dummy_sigma,m_0,k_0,S_0,v_0);
@@ -117,10 +121,17 @@ for sweep = 1:NUM_SWEEPS
         [~, logpstr] = NIWpdf(dummy_mu,dummy_sigma,m_1,k_1,S_1,v_1);
             % partition = prior*lklihd/pstr
         logPartition = logprior + logLklihd - logpstr;
+        t1 = toc;
         lp = [lp, log(alpha) - log(N-1+alpha)+logPartition];
 
         partition = exp(logPartition);
-        
+        %fprintf('log Partition = %f\nTime = %f\n', logPartition,t1);
+        tic
+        lZ = 0.5*D*log(2) - 0.5*D*(log(k_1)-log(k_0)+log(2*pi))...
+            -0.5*(v_1*log(det(S_1))-v_0*log(det(S_0)))...
+            +log(gamma(0.5*(v_0+1)))-log(gamma(0.5*(v_0+1-D)));
+        t2 = toc;
+        %fprintf('logZ = %f\nTime = %f \n\n', lZ, t2);
         p(K+1) = alpha/(N-1+alpha) * partition;
         p = p/sum(p);
         
@@ -192,11 +203,11 @@ fprintf('\n');
 % FOR 2D DATA ONLY:
 if D == 2
     figure(2)
-    %subplot(1,2,1);
-    %scatter(X(:,1),X(:,2));
+    subplot(1,2,1);
+    scatter(X(:,1),X(:,2));
     %gscatter(X(:,1),X(:,2),C_true)
-    %title('true clusters');
-    %subplot(1,2,2)
+    title('true clusters');
+    subplot(1,2,2)
     gscatter(X(:,1),X(:,2),clusters);
     hold on
     for k = 1:K

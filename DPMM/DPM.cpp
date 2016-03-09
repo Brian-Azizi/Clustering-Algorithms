@@ -70,6 +70,9 @@ double logNormInvWishPdf (arma::mat mu, arma::mat sigma, arma::mat m, double k, 
 // containing the (unnormalized) log probabilities
 arma::uword logCatRnd (arma::mat logP)
 {
+  if (logP.has_nan()) {
+      throw std::invalid_argument("log P contains NaN");
+    }
   arma::uword K = logP.n_rows;
   arma::mat p = exp(logP);	// recover p using softmax trick
   p /= arma::accu(p);
