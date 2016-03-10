@@ -60,8 +60,10 @@
 \DeclareMathOperator*{\Beta}{Beta}
 \DeclareMathOperator*{\GEM}{GEM}
 \DeclareMathOperator*{\Stick}{Stick}
-%% shorthand for \boldsymbol
+\DeclareMathOperator*{\Unif}{Unif}
+%% shorthand for \boldsymbol and \overline
 \let\bs\boldsymbol
+\let\ol\overline
 %% command that allows equations to be split across pages
 %\allowdisplaybreaks[3]
 
@@ -321,7 +323,7 @@ $\Gamma(t)$ is the \emph{Gamma function} defined as
 \Gamma(t) = \int\nolimits_{-\infty}^{\infty} x^{t-1} e^{-x} dx
 \]	
 for $t \in \mathbb{R}_+$.
-It is a generalization of the factorial function to the positive real line since for $n\in \mathbb{N}$, $\Gamma(n) = (n-1)!$.
+It has the important property that $\Gamma(t+1) = t\,\Gamma(t)$ and can be regarded as a generalization of the factorial function to the positive real line since for $n\in \mathbb{N}$, $\Gamma(n) = (n-1)!$.
 }
 is defined as
 \begin{equation}
@@ -346,7 +348,7 @@ Define $\alpha_0 = \sum_{k=1}^K \alpha_k$. To work out the mean of a Dirichlet d
 &= \frac{\alpha_1}{\alpha_0}
 \end{split}
 \end{equation}
-where we used the fact that the integral is the normalization constant of the $\Dir(\alpha_1+1,\alpha_2,\dots,\alpha_K)$ pdf in the third line and the property of the Gamma function that $\Gamma(t+1)=t\Gamma(t)$ in the fourth line. 
+where we used the fact that the integral is the normalization constant of the $\Dir(\alpha_1+1,\alpha_2,\dots,\alpha_K)$ pdf in the third line and the property of the Gamma function that $\Gamma(t+1)=t\,\Gamma(t)$ in the fourth line. 
 The derivation is symmetric for the remaining components of $\bs \pi$, thus 
 \begin{equation}
 \label{eqn:dirmean}
@@ -1040,7 +1042,7 @@ For more details on Gibbs sampling in DP mixtures, see \cite{neal2000,orbanz2014
 In this section, we will describe our implementation of the Dirichlet process mixture model.
 We assumed that our data lives in $D$-dimensional Euclidean space, $\bs x \in \mathbb{R}^D$, and therefore chose a Gaussian likelihood model with a conjugate prior.
 
-\subsection{Bayesian analysis of the multivariate Gaussian}
+\subsection{Conjugate Bayesian analysis of the multivariate Gaussian}
 Before descibing the details of the implementation, we shall briefly review Bayesian inference for the Gaussian distribution.
 
 Suppose we have a set of $D$-dimensional variables $X^{(1)},\dots,X^{(N)}$ that are independent and identically distributed according to a multivariate Gaussian distribution with mean $\bs\mu \in \mathbb{R}^D$ and covariance matrix $\bs\Sigma \in \mathbb{R}^{D\times D}$. 
@@ -1049,9 +1051,9 @@ The pdf of the Gaussian is given by
 \mathcal{N}(\bs x|\,\bs\mu,\bs\Sigma) = (2\pi)^{-\frac{1}{2}D}|\bs\Sigma|^{-\frac{1}{2}} \exp \left((\bs\mu-\bs x)^T \bs\Sigma^{-1} (\bs\mu-\bs x) \right).
 \end{equation}
 
-If we have a dataset of observations $S = \{\bs x^{(1)},\dots,\bs x^{(N)}\}$ so that $X^{(i)} = \bs x^{(i)}$, we can formulate the likelihood of the data as follows
+If we have a dataset of observations $\mathcal{D} = \{\bs x^{(1)},\dots,\bs x^{(N)}\}$ so that $X^{(i)} = \bs x^{(i)}$, we can formulate the likelihood of the data as follows
 \begin{equation}
-p(S|\,\bs\mu,\bs\Sigma) = \prod_{i=1}^N \mathcal{N}(\bs x^{(i)}|\,\bs \mu,\bs \Sigma).
+p(\mathcal{D}|\,\bs\mu,\bs\Sigma) = \prod_{i=1}^N \mathcal{N}(\bs x^{(i)}|\,\bs \mu,\bs \Sigma).
 \end{equation}
 
 For simplicity, we will put a conjugate prior over the parameters $(\bs\mu,\bs\Sigma)$ which, in our case, is the \emph{Normal-inverse-Wishart} (NIW) distribution.
@@ -1073,19 +1075,126 @@ and $\Gamma_D$ is the multivariate Gamma function defined as
 \Gamma_D(t) = \pi^{\frac{D(D-1)}{4}} \prod_{j=1}^D \Gamma\left(t + \frac{1-j}{2}\right)
 \end{equation}
 
-We can interpret the hyper-parameters $\lambda = (\bs m_0,\kappa_0,\bs S_0,\nu_0)$ as follows:
+We can interpret the hyper-parameters
+\begin{equation*}
+\lambda_0 = \{\bs m_0,\kappa_0,\bs S_0,\nu_0\}
+\end{equation*}
+as follows:
 $\bs m_0 \in \mathbb{R}^D$ is our prior belief for $\bs \mu$ and $\kappa_0 > 0$ is the strength of that belief.
 The so-called scale matrix $\bs S_0$ is a positive definite $D\times D$ matrix and represents our prior belief for $\bs \Sigma$ (it is proportional to the prior mean of $\bs\Sigma$).
-The final hyper-parameter $\nu_0$ is called the ``degrees of freedom". It must satisfy $\nu_0 \geq D$ measures the strength of our belief in the prior for $\Sigma$.
+The final hyper-parameter $\nu_0$ is called the ``degrees of freedom".
+It must satisfy $\nu_0 \geq D$ and measures the strength of our belief in the prior for $\Sigma$.
 
-The posterior for our parameters $(\bs\mu,\bs\Sigma)$ is given by
+Because of conjugacy, we know that the posterior distribution of our parameters $(\bs\mu,\bs\Sigma)$ is also the Normal-inverse-Wishart:
 \begin{equation}
+\label{eqn:NIWpost}
 \begin{split}
-&p(\bs\mu,\bs\Sigma|\,S) =\\
-&\frac{\mathcal{NIW}(\bs\mu,\bs\Sigma|\,\bs m_0,\kappa_0,\bs S_0,\nu_0)\prod_{i=1}^N \mathcal{N}(\bs x^{(i)}|\,\bs \mu,\bs \Sigma)}{\iint\mathcal{NIW}(\bs\mu,\bs\Sigma|\,\bs m_0,\kappa_0,\bs S_0,\nu_0)\prod_{i=1}^N \mathcal{N}(\bs x^{(i)}|\,\bs \mu,\bs \Sigma)d(\bs\mu,\bs\Sigma)}\\
-&= \mathcal{NIW}(\bs\mu,\bs\Sigma|\,\bs m_n,\kappa_N,\bs S_N,\nu_N)
+p(\bs\mu,\bs\Sigma|\,\mathcal{D}) &= \frac{p(\mathcal{D}|\,\bs\mu,\bs\Sigma)\mathcal{NIW}(\bs\mu,\bs\Sigma|\,\lambda_0)}{\iint p(\mathcal{D}|\,\bs\mu,\bs\Sigma)\mathcal{NIW}(\bs\mu,\bs\Sigma|\,\lambda_0)d(\bs\mu,\bs\Sigma)}\\
+&= \mathcal{NIW}(\bs\mu,\bs\Sigma|\,\bs m_\mathcal{D},\kappa_\mathcal{D},\bs S_\mathcal{D},\nu_\mathcal{D})
 \end{split}
 \end{equation}
+and in order to evaluate it we only need to know how to update the hyperparameters $\lambda_\mathcal{D} = \{\bs m_\mathcal{D},\kappa_\mathcal{D},\bs S_\mathcal{D},\nu_\mathcal{D}\}$.
+The update formulas are
+\begin{equation}
+\begin{split}
+\bs m_\mathcal{D} &= \frac{\kappa_0\bs m_0 + N \overline{\bs x}}{\kappa_0 + N}\\
+\kappa_\mathcal{D} &= \kappa_0 + N\\
+\bs S_\mathcal{D} &= \bs S_0 + \bs S + \kappa_0 \bs m_0 \bs m_0^T - \kappa_\mathcal{D} \bs m_\mathcal{D} \bs m_\mathcal{D}^T\\
+\nu_\mathcal{D} &= \nu_0 + N
+\end{split}
+\end{equation}
+where we have defined $\overline{\bs x} = \sum_{i=1}^N \bs x^{(i)}$ as the sample mean and $\bs S = \sum_{i=1}^N \bs x^{(i)} \bs x^{(i)T}$ as the uncentered sum-of-squares matrix.
+
+For a derivation and discussion of these results (as well as a deeper look into the conjugate Bayesian analysis of the Gaussian) consult \cite{murphy2007}.
+
+\subsection{Implementation details}
+Most steps in the pseudo-code of algorithm \ref{alg:gibbs2} are independent of our choice for the likelihood model and the prior. 
+The only steps that require some elaboration are sampling the cluster assignment variable $z^{(i)}$ (line 13 in the pseudo-code) and sampling the cluster parameters $\overline\theta_k = \left(\bs\mu_k,\bs\Sigma_k\right)$ (lines 15 and 20).
+
+\subsubsection{Sampling $z^{(i)}$}
+We need to sample $z^{(i)}$ from the categorical distribution $\Cat(\phi_1,\dots,\phi_K,\phi_{K+1})$ where the quantities $\phi_k$ are defined in equations (\ref{eqn:phi_k}) and (\ref{eqn:phi_K+1}).
+Note that we do not need worry about the normalization constant $B$ since we can always retrieve it from the sum-to-one constraint $\sum_{k=1}^{K+1}\phi_k=1$.
+Furthermore, we will work with the logarithm of the unnormalized probabilities $\hat\phi_k = \log(\phi_k/B)$.
+We do this in order to counteract numerical instability which may occur since the unnormalized probabilites are typically very small in magnitude. 
+
+For $k=1,\dots,K$, we have
+\begin{equation}
+\begin{split}
+\hat\phi_k &= \log\left(N^{\,(-i)}_k f(x^{(i)}|\,\bar\theta_k)\right)\\
+&= \log\left(N^{\,(-i)}_k \mathcal{N}(\bs x^{(i)}|\,\bs\mu_k,\bs\Sigma_k\right)\\
+&= \log N^{\,(-i)}_k -\frac{D}{2}\log2\pi -\frac{1}{2}\log|\Sigma_k|\\
+&\quad+ (\bs\mu_k-\bs x^{(i)})^T\bs\Sigma_k^{-1}(\bs\mu_k-\bs x^{(i)})
+\end{split}
+\end{equation}
+whereas for $k=K+1$ we have
+\begin{equation}
+\begin{split}
+\hat\phi_{K+1} &= \log\left(\alpha\int_\Omega f(x^{(i)}|\,\theta)H(\theta)d\theta\right)\\
+&=\log\alpha+\log J
+\end{split}
+\end{equation}
+where
+\begin{equation}
+J = \iint\mathcal{NIW}(\bs\mu,\bs\Sigma|\lambda_0)\mathcal{N}(x^{(i)}|\,\bs\mu,\bs\Sigma)d(\bs\mu,\bs\Sigma)
+\end{equation}
+The integral $J$ is the same as the integral in the evaluation of the posterior distribution for $(\bs\mu,\bs\Sigma)$ (equation (\ref{eqn:NIWpost})) if we only consider the single observation $x^{(i)}$, so that $\mathcal{D}=\{x^{(i)}\}$.
+This implies that
+\begin{equation}
+\begin{split}
+J &= \frac{\mathcal{N}(\bs x^{(i)}|\,\bs\mu,\bs\Sigma)\mathcal{NIW}(\bs\mu,\bs\Sigma|\,\lambda_0)}{\mathcal{NIW}(\bs\mu,\bs\Sigma|\,\lambda_\mathcal{D})}\\
+&= \frac{Z_{NIW}(\lambda_0) (2\pi)^{-D/2}}{Z_{NIW}(\lambda_\mathcal{D})}
+\end{split}
+\end{equation}
+where we have made the dependence of the normalization constant of the NIW distribution, $Z_{NIW}$, on the hyperparameters, $\lambda$, explicit.
+
+With a little algebra (and making repeated use of the $\Gamma(t+1) = t\,\Gamma(t)$ property of the Gamma function) we can show that
+\begin{equation}
+\begin{split}
+\hat \phi_{K+1} = &\log\alpha + \frac{1}{2}D\left(\log\kappa_0 - \log\kappa^{(i)} -\log\pi \right)\\
+&+ \frac{1}{2}\left(\nu_0 \log|\bs S_0| - \nu^{(i)} \log|\bs S^{(i)}|\right)\\
+&+ \log\Gamma\left(\frac{1}{2}(\nu_0 + 1)\right) - \log\Gamma\left(\frac{1}{2}(\nu_0 + 1 -D)\right)
+\end{split}
+\end{equation}
+where we used the notation $\bs S^{(i)} := \bs S_\mathcal{D}$ and $\kappa^{(i)} := \kappa_\mathcal{D}$ for $\mathcal{D} = \{x^{(i)}\}$.
+
+Once we have computed $\hat\phi_k$, we are ready to sample $z^{(i)}$ from $\Cat(\phi_1,\dots,\phi_{K+1})$.
+First, we recover the unnormalized probabibilities
+\begin{equation}
+\phi_k = \frac{\exp \hat \phi}{\sum_{j=1}^{K+1}\exp\hat\phi_j}
+\end{equation}
+Next, we sample a uniformly distributed variable
+\begin{equation}
+u \sim \Unif[0,1]
+\end{equation}
+Finally, we set 
+\begin{equation}
+z^{(i)} = \min\{1,\dots,K+1\} \qquad \mbox{such that}\qquad u \leq \sum_{j=1}^{z^{(i)}} \phi_j
+\end{equation}
+We can easily verify that 
+\begin{equation}
+\begin{split}
+\Pr\left(z^{(i)} = k\right) &= \Pr\left(\sum_{j=1}^{k-1} \phi_j < u \leq \sum_{j=1}^k \phi_j\right)\\
+&= \sum_{j=1}^k \phi_j - \sum_{j=1}^{k-1} \phi_j\\
+&= \phi_k
+\end{split}
+\end{equation}
+and we are thus sampling from the correct distribution.
+
+\subsection{Sampling from the Normal-inverse-Wishart distribution}
+Both, in lines 15 and 20 of the pseudo-code for our Gibbs sampler (algorithm \ref{alg:gibbs2}), we need to sample generate a sample $(\bs\mu,\bs\Sigma)$ from $\mathcal{NIW}(\lambda_\mathcal{D})$.
+In line 15, we have $\mathcal{D} = \{x^{(i)}\}$ and in line 20 we have $\mathcal{D} = \{x^{(j)} : z^{(j)} = k\}$.
+
+We are able to factorise the pdf of the NIW as follows 
+\begin{equation}
+\mathcal{NIW}(\bs\mu,\bs\Sigma|\,\bs m,\kappa,\bs S,\nu) = \mathcal{N}(\bs\mu|\,\bs m,\frac{1}{\kappa}\bs\Sigma)\mathcal{IW}(\bs\Sigma|\,\bs S,\nu)
+\end{equation}
+where $\mathcal{IW}(\bs\Sigma|\,\bs S,\nu)$ is the pdf of the \emph{inverse Wishart} distribution.
+\footnote{The inverse Wishart distribution is a distribution over symmetric and positive definite $D\times D$ matrices. It is the conjugate prior distribution for the covariance parameter $\bs\Sigma$ of a Gaussian likelihood if we assume that the mean parameter $\bs\mu$ is known.}
+
+Thus, we can sample $(\bs\mu,\bs\Sigma)\sim\mathcal{NIW}(\bs m,\kappa,\bs S,\nu)$ in the following way:
+First, we sample $\bs\Sigma$ from the inverse Wishart distribution, $\bs\Sigma \sim \mathcal{IW}(\bs S,\nu)$.
+Then, given $\bs\Sigma$, we sample $\bs\mu$ from the Normal distribution, $\bs\mu \sim \mathcal{N}(\bs m,\frac{1}{\kappa}\bs\Sigma)$.
+
 
 
 %\section{Extensions and Further Work}
