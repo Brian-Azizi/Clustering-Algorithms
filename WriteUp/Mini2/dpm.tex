@@ -1265,6 +1265,18 @@ Once we have access to both $\Uniform[0,1]$ samples and $\mathcal{N}(0,1)$ sampl
 We have now discussed all the implementation details.
 The only thing left to do is to specify the hyperparameters of the prior, $\lambda_0$, and the value for the concentration parameter $\alpha$.
 
+We decided to use a weakly informative data-dependent prior, as suggested in \cite{Murphy}:
+\begin{equation}
+\begin{split}
+\bs m_0 &= \ol{\bs x} = \frac{1}{N}\sum_{i=1}^N \bs x^{(i)}\\
+\kappa_0 &= 0.01\\
+\bs S_0 &= \frac{1}{N}\mbox{diag}\left(\sum_{i=1}^N\left(\bs x^{(i)} - \ol{\bs x}\right)\left(\bs x^{(i)} - \ol{\bs x}\right)\right)\\
+\nu_0 &= D + 2
+\end{split}
+\end{equation}
+
+In our demonstrations, we have set $\alpha = 1$. 
+
 \section{Extensions and Further Work}
 \label{sect:conclusion}
 The Bayesian nonparametrics approach to machine learning is an active area of research.
