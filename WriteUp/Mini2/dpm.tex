@@ -60,7 +60,7 @@
 \DeclareMathOperator*{\Beta}{Beta}
 \DeclareMathOperator*{\GEM}{GEM}
 \DeclareMathOperator*{\Stick}{Stick}
-\DeclareMathOperator*{\Unif}{Unif}
+\DeclareMathOperator*{\Uniform}{Uniform}
 %% shorthand for \boldsymbol and \overline
 \let\bs\boldsymbol
 \let\ol\overline
@@ -116,7 +116,7 @@
 %% \address{Address\fnref{label3}}
 %% \fntext[label3]{}
 
-\title{Mini Project: Dirichlet Processes and the Dirichlet Process Mixture}
+\title{Dirichlet Processes and the Dirichlet Process Mixture}
 
 %% use optional labels to link authors explicitly to addresses:
 %% \author[label1,label2]{<author name>}
@@ -129,8 +129,9 @@
   Avenue, Cambridge. CB3 0HE}
 
 \begin{abstract}
-As part of the written assignment for the MPhil in Scientific Computing, we have implemented three clustering algorithms in the C++ programming language: the k-means algorithm, the Gaussian mixture model and the Dirichlet Process mixture model.
-Subsequently, the algorithms will be compared and texted on a number of data sets.
+In many clustering problems the actual number of clusters $K$ exhibited in the underlying population is ambiguous and indeed, for many applications, we would expect the number of observed clusters to increase as we increase the size of our data set.
+Traditional parametric approaches to clustering, such as finite mixture models, are too restrictive to accurately capture this phenomenon.
+In this paper, we will discuss the Dirichlet process mixture model, a Bayesian nonparametric approach to clustering based on the Dirichlet process.
 \end{abstract}
 
 \end{frontmatter}
@@ -143,15 +144,21 @@ Subsequently, the algorithms will be compared and texted on a number of data set
 %% main text
 \section{Introduction}
 \label{sect:Intro}
-In this written assignment, we introduce the \emph{Dirichlet Process Mixture (DPM)} as a \emph{non-parametric Bayesian} model for clustering.
-We begin with a general discussion of Dirichlet Processes (DP).
-We then give four different representations of DPs that give us a deeper intuitive understanding in section \ref{sect:representations}.
-Section \ref{sect:DPM} explains how Dirichlet processes can be applied to clustering via the Dirichlet Process Mixture.
-Following this, we discuss inference in the DPM and our implementation of the model.
-Here, we will also give some output of our implementation.
-In the final section, we discuss further work and conclude.
+In this paper, we discuss the \emph{Dirichlet Process Mixture (DPM)} as a \emph{non-parametric Bayesian} model for clustering.
+This paper is intended to be largely self-contained and can therefore be used as a tutorial.
+We have implemented the Dirichlet process mixture as part of this project and will discuss the details of our implementation.
+
+We start off with a discussion on the Bayesian analysis of discrete random variables in section \ref{sect:parametric}, and introduce some key concepts that we will repeatedly make use of throughout the paper.
+We then extend this analysis in section \ref{sect:dp} to the nonparametric case and formally define the Dirichlet process.
+Section \ref{sect:representations} discusses various representations of the Dirichlet process that give us a better understanding of its properties.
+Following this, in section \ref{sect:DPM} we show how Dirichlet processes can be used for clustering and density estimation via the Dirichlet process mixture model. 
+Here, we will also derive a general inference algorithm based on Gibbs sampling.
+In section \ref{sect:implementations}, we derive the Dirichlet process mixture for a Gaussian likelihood model using a conjugate prior and describe important details of our implementations.
+Finally, we briefly discuss extensions the Dirichlet process and conclude in section \ref{sect:conclusion}.
+
 
 \section{Bayesian Parametrics and the Dirichlet Distribution}
+\label{sect:parametric}
 In this section, we describe the Dirichlet distribution.
 
 \subsection{Discrete Random Variables and the Categorical Distribution}
@@ -219,18 +226,6 @@ defined as
 \end{equation}
 Figure \ref{fig:simplex} depicts $\Delta_K$ when $K=3$.
 
-\begin{figure}
-\begin{tikzpicture}[scale=2]
-\draw[thick,<-] (0,2) node [left] {$\pi_2$} -- (0,0);
-\draw[thick,->] (0,0) -- (1.9,0) node [below right] {$\pi_1$};
-\draw[thick,->] (0,0) -- (-0.8,-1.2) node [above left] {$\pi_3$};
-\draw[red, fill=red, opacity=0.7] (1.5,0) node [above right, black] {$1$} -- (0,1.5) node [above left, black] {$1$} -- (-.554,-.832) node [above left, black] {$1$} -- (1.5,0);
-\draw[help lines,<-] (0.6,0.6) -- (1,1) node [above right, black] {$\Delta_3$};
-\end{tikzpicture}
-\caption{The 3-dimensional probability simplex $\Delta_3$.}
-\label{fig:simplex}
-\end{figure}
-
 Now suppose we have a dataset $S=\{x_{(i)}\}_{i=1}^N$ consisting of $N$ independent observations of $x$.
 The corresponding likelihood function takes the form
 \begin{equation}
@@ -249,6 +244,18 @@ To perform the constrained optimization, we use the method of Lagrange multiplie
 \footnote{Generally speaking, we should include the inequality constraints $\pi_k \geq 0$ in the Lagrangian and perform the optimization via the Karush-Kuhn-Tucker conditions.
 In our case we may safely ignore these constraints since our solution (equation \ref{eqn:catML}) happens to satisfy them regardless.}
 using equation \ref{eqn:catlik}
+
+\begin{figure}
+\begin{tikzpicture}[scale=2]
+\draw[thick,<-] (0,2) node [left] {$\pi_2$} -- (0,0);
+\draw[thick,->] (0,0) -- (1.9,0) node [below right] {$\pi_1$};
+\draw[thick,->] (0,0) -- (-0.8,-1.2) node [above left] {$\pi_3$};
+\draw[red, fill=red, opacity=0.7] (1.5,0) node [above right, black] {$1$} -- (0,1.5) node [above left, black] {$1$} -- (-.554,-.832) node [above left, black] {$1$} -- (1.5,0);
+\draw[help lines,<-] (0.6,0.6) -- (1,1) node [above right, black] {$\Delta_3$};
+\end{tikzpicture}
+\caption{The 3-dimensional probability simplex $\Delta_3$.}
+\label{fig:simplex}
+\end{figure}
 
 \begin{equation}
 \label{eqn:catlagrange}
@@ -407,6 +414,8 @@ which is just the prior expected value of $\pi_k$.
 Thus, $x \sim \Cat(\frac{\alpha_1}{\alpha_0},\dots,\frac{\alpha_K}{\alpha_0})$.
 
 For more information on the Bayesian and frequentist analysis of categorical data and the Dirichlet distribution, see \cite{Bishop, Murphy}.
+
+
 \section{The Dirichlet Process}
 \label{sect:dp}
 Having discussed the Dirichlet distribution and its role in the parametric Bayesian analysis of discrete random variables, we are now ready to explore the Dirichlet process and its role in Bayesian nonparametrics.
@@ -753,6 +762,8 @@ where $z_i$ is the table at which customer $i$ is sitting at.
 
 We will return to the Chinese restaurant process in the next section when we discuss Dirichlet mixtures as it builds the basis for our inference method.
 
+
+
 \section{The Dirichlet Process Mixture}
 \label{sect:DPM}
 So far, the discussion has been about the properties of the Dirichlet process as a stochastic object.
@@ -1038,7 +1049,9 @@ We can interpret $\int_\Omega f(x^{(N+1)}|\,\theta)H(\theta)d\theta$ as a mixtur
 For more details on Gibbs sampling in DP mixtures, see \cite{neal2000,orbanz2014}.
 
 
+
 \section{Implementation of the Normal-Inverse-Wishart Dirichlet Process Mixture model}
+\label{sect:implementation}
 In this section, we will describe our implementation of the Dirichlet process mixture model.
 We assumed that our data lives in $D$-dimensional Euclidean space, $\bs x \in \mathbb{R}^D$, and therefore chose a Gaussian likelihood model with a conjugate prior.
 
@@ -1108,6 +1121,9 @@ where we have defined $\overline{\bs x} = \sum_{i=1}^N \bs x^{(i)}$ as the sampl
 For a derivation and discussion of these results (as well as a deeper look into the conjugate Bayesian analysis of the Gaussian) consult \cite{murphy2007}.
 
 \subsection{Implementation details}
+We have implemented the Dirichlet process mixture model with a Gaussian likelihood and conjugate prior using algorithm \ref{alg:gibbs2} for inference.
+The implementation is written in C++11 and we used the open-source linear algebra library ``Armadillo" \cite{armadillo}.
+
 Most steps in the pseudo-code of algorithm \ref{alg:gibbs2} are independent of our choice for the likelihood model and the prior. 
 The only steps that require some elaboration are sampling the cluster assignment variable $z^{(i)}$ (line 13 in the pseudo-code) and sampling the cluster parameters $\overline\theta_k = \left(\bs\mu_k,\bs\Sigma_k\right)$ (lines 15 and 20).
 
@@ -1147,6 +1163,28 @@ J &= \frac{\mathcal{N}(\bs x^{(i)}|\,\bs\mu,\bs\Sigma)\mathcal{NIW}(\bs\mu,\bs\S
 \end{equation}
 where we have made the dependence of the normalization constant of the NIW distribution, $Z_{NIW}$, on the hyperparameters, $\lambda$, explicit.
 
+\begin{algorithm}
+\caption{Smith \& Hocking procedure \cite{smith1972} for generating $\mathcal{IW}(\bs S,\nu)$ distributed random matrices}
+\label{alg:IW}
+\begin{algorithmic}[1]
+\State Decompose $\bs S$ into $\bs S = \bs L \bs L^T$ where $\bs L$ is a lower-triangular $D \times D$ matrix. This can be done with a Cholesky-decomposition.
+\State Initialize $\bs A$ to be the $D\times D$ null matrix: $\bs A = \bs 0_D$
+\Statex\State\Comment Fill diagonal with square root of Gamma samples
+\For {$i = 1,\dots,D$}
+\State Sample $x \sim \mbox{Gamma}\left(\frac{\nu + 1-i}{2},2\right)$
+\State Set $\bs A_{i,i} = \sqrt x$
+\EndFor
+\Statex\State\Comment Fill upper triangular part with $\mathcal{N}(0,1)$ samples
+\For {$i = 1,\dots,D$}
+\For {$j = i+1,\dots,D$}
+\State Sample $z \sim \mathcal{N}(0,1)$
+\State Set $\bs A_{i,j} = z$
+\EndFor
+\EndFor
+\Statex\State \Return $\bs \Sigma = \bs L \left(\bs A^T \bs A\right)^{-1} \bs L^T$
+\end{algorithmic}
+\end{algorithm}
+
 With a little algebra (and making repeated use of the $\Gamma(t+1) = t\,\Gamma(t)$ property of the Gamma function) we can show that
 \begin{equation}
 \begin{split}
@@ -1164,7 +1202,7 @@ First, we recover the unnormalized probabibilities
 \end{equation}
 Next, we sample a uniformly distributed variable
 \begin{equation}
-u \sim \Unif[0,1]
+u \sim \Uniform[0,1]
 \end{equation}
 Finally, we set 
 \begin{equation}
@@ -1181,6 +1219,21 @@ We can easily verify that
 and we are thus sampling from the correct distribution.
 
 \subsection{Sampling from the Normal-inverse-Wishart distribution}
+
+\begin{algorithm}
+\caption{Procedure for sampling $\bs x \sim \mathcal{N}(\bs m,\bs S)$}
+\label{alg:gauss}
+\begin{algorithmic}[1]
+\State Decompose $\bs S$ into $\bs S = \bs A \bs A^T$ using, for example, the Cholesky factorization.
+\Statex\State\Comment Generate $D$ independent standard normal samples
+\For {$i=1,\dots,D$}
+\State Sample $z_i \sim \mathcal{N}(0,1)$
+\EndFor
+\State Set $\bs z = (z_1,\dots,z_D)^T$
+\Statex\State\Return $\bs x = \bs m + \bs A \bs z$
+\end{algorithmic}
+\end{algorithm}
+
 Both, in lines 15 and 20 of the pseudo-code for our Gibbs sampler (algorithm \ref{alg:gibbs2}), we need to sample generate a sample $(\bs\mu,\bs\Sigma)$ from $\mathcal{NIW}(\lambda_\mathcal{D})$.
 In line 15, we have $\mathcal{D} = \{x^{(i)}\}$ and in line 20 we have $\mathcal{D} = \{x^{(j)} : z^{(j)} = k\}$.
 
@@ -1192,20 +1245,57 @@ where $\mathcal{IW}(\bs\Sigma|\,\bs S,\nu)$ is the pdf of the \emph{inverse Wish
 \footnote{The inverse Wishart distribution is a distribution over symmetric and positive definite $D\times D$ matrices. It is the conjugate prior distribution for the covariance parameter $\bs\Sigma$ of a Gaussian likelihood if we assume that the mean parameter $\bs\mu$ is known.}
 
 Thus, we can sample $(\bs\mu,\bs\Sigma)\sim\mathcal{NIW}(\bs m,\kappa,\bs S,\nu)$ in the following way:
-First, we sample $\bs\Sigma$ from the inverse Wishart distribution, $\bs\Sigma \sim \mathcal{IW}(\bs S,\nu)$.
-Then, given $\bs\Sigma$, we sample $\bs\mu$ from the Normal distribution, $\bs\mu \sim \mathcal{N}(\bs m,\frac{1}{\kappa}\bs\Sigma)$.
+\begin{enumerate}
+\item Sample $\bs\Sigma$ from an inverse Wishart distribution: $\bs\Sigma \sim \mathcal{IW}(\bs S,\nu)$ using algorithm \ref{alg:IW}
+\item Having generated $\bs\Sigma$, we can sample $\bs\mu$ from a multivariate Gaussian distribution: $\bs\mu \sim \mathcal{N}(\bs m,\frac{1}{\kappa}\bs\Sigma)$ using algorithm \ref{alg:gauss}
+\end{enumerate}
 
+This assumes that we have access to standard normal samples ($\mathcal{N}(0,1)$) and also to samples following a $\mbox{Gamma}(a,b)$ distribution.
+\footnote{The Gamma distribution with shape parameter $a$ and rate parameter $b$, denoted $\mbox{Gamma}(a,b)$, is a continuous distribution that has support over the positive real line $\mathbb{R}_+ = (0,+\infty)$.
+Its pdf is given by
+\[
+\mbox{Gamma}(x|\,a,b) = \frac{b^a}{\Gamma\left(a\right)} x^{a-1} \exp \left(-bx\right)
+\]
+}
+C++11 has built-in functions that allow for the generation of both types of random numbers.
+If we only have access to $\Uniform[0,1]$ samples, we can generate $\mathcal{N}(0,1)$ samples using the Box-Muller transform \cite{box1958}.
+Once we have access to both $\Uniform[0,1]$ samples and $\mathcal{N}(0,1)$ samples, we can generate $\mbox{Gamma}(a,b)$ samples using the method proposed in \cite{marsaglia2000}.
 
+\subsection{Demonstration}
+We have now discussed all the implementation details.
+The only thing left to do is to specify the hyperparameters of the prior, $\lambda_0$, and the value for the concentration parameter $\alpha$.
 
-%\section{Extensions and Further Work}
+\section{Extensions and Further Work}
+\label{sect:conclusion}
+The Bayesian nonparametrics approach to machine learning is an active area of research.
+The Dirichlet process plays an important role in the Bayesian nonparametric framework as a prior distribution.
+It is the canonical distribution over probability measures due its wide support and tractable inference.
 
-\section*{Acknowledgements}
-Here I acknowledge the assistance of my supervisor, my industrial sponsor,
-and the effects of caffeine on my ability to produce this report on time.
+As such, many generalizations and extensions have been explored in the literature.
+A very popular generalization is the \emph{Pitman-Yor process} \cite{pitman1997,teh2006a}.
+It has an additional parameter $d \in [0,1)$ and reduces to the Dirichlet process when $d=0$.
+If $d$ is close to $1$, the clusters generated by the Pitman-Yor process exhibit a power-law behaviour in the sense that it will produce a few large clusters and many very small clusters.
+All of the representations of the Dirichlet process discussed in section \ref{sect:representations} can be generalized to the Pitman-Yor process.
+
+Other generalizations of the DP include P\'olya trees, stick-breaking priors and Poisson-Kingman models.
+These can be derived by extending one of the representations of the DP.
+A different class of extensions uses the Dirichlet process as building blocks to develop more complex models.
+Two such models are the dependent Dirichlet processes \cite{maceachern1999} and hierarchical Dirichlet processes \cite{teh2006b}. 
+
+Beside extensions of the DP, recent research has also been focused on exploring more efficient inference methods in Dirichlet process models that go beyond our simple Gibbs sampler.
+Finally, there has also been considerable interest, both in establishing theoretical properties of DP models and in their practical applications.
+
+Bayesian nonparametric methods provide a powerful set of tools for machine learning and show great potential for a wide range of applications. 
+However, the complexity of these models and the expense in implementing them poses a significant hurdle to practitioners and researchers.
+We hope that, with this paper and our software package, we can make Bayesian nonparametric methods available to a wider audience and encourage growth in their application.
+
+%\section*{Acknowledgements}
+%Here I acknowledge the assistance of my supervisor, my industrial sponsor,
+%and the effects of caffeine on my ability to produce this report on time.
 
 %% The Appendices part is started with the command \appendix;
 %% appendix sections are then done as normal sections
-\appendix
+%\appendix
 
 %% References
 %%
