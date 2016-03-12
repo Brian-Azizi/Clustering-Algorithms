@@ -153,17 +153,19 @@ We then extend this analysis in section \ref{sect:dp} to the nonparametric case 
 Section \ref{sect:representations} discusses various representations of the Dirichlet process that give us a better understanding of its properties.
 Following this, in section \ref{sect:DPM} we show how Dirichlet processes can be used for clustering and density estimation via the Dirichlet process mixture model. 
 Here, we will also derive a general inference algorithm based on Gibbs sampling.
-In section \ref{sect:implementations}, we derive the Dirichlet process mixture for a Gaussian likelihood model using a conjugate prior and describe important details of our implementations.
+In section \ref{sect:implementation}, we derive the Dirichlet process mixture for a Gaussian likelihood model using a conjugate prior and describe important details of our implementations.
 Finally, we briefly discuss extensions the Dirichlet process and conclude in section \ref{sect:conclusion}.
 
 
-\section{Bayesian Parametrics and the Dirichlet Distribution}
+\section{Conjugate Bayesian Analysis of Categorical Variables}
 \label{sect:parametric}
-In this section, we describe the Dirichlet distribution.
+This section develops a parametric Bayesian for discrete random variables.
+It is intended to provide background for the nonparametric models studied in later sections.
+We introduce a number of important concepts that will be repeatedly used throughout this paper such as the Dirichlet and categorical distributions, delta functions and the notion of conjugacy within Bayesian inference. 
 
 \subsection{Discrete Random Variables and the Categorical Distribution}
-Consider a discrete random variable $x$ that can take one of $K$ possible categorical values, $x \in \{1,\dots,K\}$.
-The distribution of $x$ is then fully specified by the probabilities $\pi_k = P(x = k)$ and its probability mass function (pmf) is given by
+Consider a discrete random variable $X$ that can take one of $K$ possible categorical values, $X \in \{1,\dots,K\}$.
+The distribution of $X$ is then fully specified by the probabilities $\pi_k = P(X = k)$ and its \emph{probability mass function} (pmf) is given by
 \begin{equation}
 \label{eqn:catpmf}
 p(x\,|\,\pi_1,\dots,\pi_K) = \prod_{k=1}^K \pi_k^{\,\delta_{x,k}}
@@ -175,12 +177,12 @@ where we made use of the Kronecker delta defined by
 1 & \mbox{if $i = j$}\\
 0 & \mbox{otherwise} \end{array} \right.
 \end{equation}
-
-We say that $x$ follows the \emph{categorical distribution}
+We say that $X$ follows the \emph{categorical distribution}
 \footnote{This distribution is sometimes also referred to as the \emph{Discrete}, the \emph{Multinoulli} or (somewhat inaccurately) the \emph{Multinomial} distribution.}
-, denoted $x \sim Cat(\pi_1, \dots, \pi_K)$.
+, denoted $X \sim \Cat(\pi_1, \dots, \pi_K)$.
 This can be viewed as a generalization of the Bernoulli distribution to more than two outcomes.
-Alternatively, we can specify the distribution of $x$ through a \emph{(generalized) probability density function (pdf)} by making use of the \emph{Dirac delta function}.
+
+Alternatively, we can specify the distribution of $X$ through a \emph{(generalized) probability density function (pdf)} by making use of the \emph{Dirac delta function}.
 \footnote{The Dirac delta can be loosely thought of as a function on $\mathbb{R}$ which is zero everywhere except at the origin where it is infinite,
 \[\delta(x) = \left\{
 \begin{array}{ll}
@@ -190,7 +192,6 @@ Alternatively, we can specify the distribution of $x$ through a \emph{(generaliz
 and whose integral over the real line is unity
 \[ \int_{-\infty}^{+\infty}\delta(x)dx = 1.\]
 Note however, that this is not a formal definition. $\delta$ can be rigorously defined using measure theory or the theory of generalized functions.}
-
 \begin{equation}
 \label{eqn:catpdf}
 \Cat(x\,|\,\pi_1,\dots,\pi_K) = \sum_{k=1}^K \pi_k \delta(x - k)
@@ -199,7 +200,7 @@ Note however, that this is not a formal definition. $\delta$ can be rigorously d
 Generalized probability density functions greatly unify the analysis of discrete and continuous random variables (as well as variables that are discrete on some parts of the probabiliy space and continuous on others).
 For instance, the usual definitions of expectation, variance, etc for continuous variables can be directly carried over to the case of discrete variables.
 In this context, points in probability space with non-zeros probability mass are referred to as \emph{atoms} (thus, the pdf of categorical variables consists entirely of atoms).
-Figure \ref{fig:pmf} illustrates the pdf of $x$.
+Figure \ref{fig:pmf} illustrates the pdf of $X$.
 
 \begin{figure}
 \begin{tikzpicture}[yscale=2.5,xscale=1.5]
@@ -226,7 +227,7 @@ defined as
 \end{equation}
 Figure \ref{fig:simplex} depicts $\Delta_K$ when $K=3$.
 
-Now suppose we have a dataset $S=\{x_{(i)}\}_{i=1}^N$ consisting of $N$ independent observations of $x$.
+Now suppose we have a dataset $S=\{ x^{(1)},\dots,x^{(N)} \}$ consisting of $N$ independent observations of $X$.
 The corresponding likelihood function takes the form
 \begin{equation}
 \label{eqn:catlik}
@@ -234,12 +235,13 @@ The corresponding likelihood function takes the form
 p(S\,|\,\bs \pi) &= \prod_{i=1}^N \prod_{k=1}^K \pi_k^{\delta_{x^{(i)},k}} \\ &= \prod_{k=1}^K \pi_k^{\left(\sum_{i=1}^N \delta_{x^{(i)},k}\right)} = \prod_{k=1}^K \pi_k^{\,m_k}
 \end{split}
 \end{equation}
-where $m_k = \sum_{i=1}^N \delta_{x^{(i)}, k}$ represents the number of observation in which $x$ takes the value $k$.
+where $m_k = \sum_{i=1}^N \delta_{x^{(i)}, k}$ represents the number of observation in which $X$ takes the value $k$.
 The quantities $m_k$ are the sufficient statistics of the categorical distribution.
 
-\subsubsection*{\normalfont \small \bfseries Maximum Likelihood Inference}
-In the frequentist setting, we typically infer the parameter $\bs \pi$ through maximum likelihood estimation.
-Given dataset $S$, we choose $\bs \pi$ that maximises the log of the likelihood function $p(S\,|\,\bs \pi)$ taking into account the constraint that $\bs \pi \in \Delta_K$.
+\subsection{Maximum Likelihood Inference of Categorical Variables}
+In the frequentist setting, we typically infer the parameter $\bs \pi$ through \emph{maximum likelihood estimation}.
+Given dataset $S$, we choose the parameter $\bs \pi$ that maximises the log of the likelihood function $p(S\,|\,\bs \pi)$ taking into account the constraint that $\bs \pi \in \Delta_K$.
+
 To perform the constrained optimization, we use the method of Lagrange multipliers. We form the Lagrangian
 \footnote{Generally speaking, we should include the inequality constraints $\pi_k \geq 0$ in the Lagrangian and perform the optimization via the Karush-Kuhn-Tucker conditions.
 In our case we may safely ignore these constraints since our solution (equation \ref{eqn:catML}) happens to satisfy them regardless.}
@@ -292,22 +294,25 @@ Therefore, the maximum likelihood solution is
 \end{equation}
 which is simply the fraction of observations in which $x = k$.
 
-\subsection{The Dirichlet Distribution and Bayesian Inference}
-\label{sect:dirdistro}
+If our dataset is small (e.g. $N < K$), the maximum likelihood approach might (incorrectly) estimate many of the parameters to be zero.
+Based on this analysis, we would conclude that the probability of a new sample $x^{(N+1)}$ taking on certain values to be zero.
+This is sometimes referred to as the \emph{zero count problem}.
+
+\subsection{Bayesian Inference and Conjugacy}
+\label{sect:conjugacy}
+
 \begin{figure*}
 \includegraphics[width=\textwidth,height=4in]{dir.png}
 \caption{Examples of Dirichlet distributions on $\Delta_3$. (Figure from \cite{ywt07})}
 \label{fig:dir}
 \end{figure*}
 
-If our dataset is small (e.g. $N < K$), the maximum likelihood approach might (incorrectly) estimate many of the parameters to be zero.
-Based on this analysis, we would conclude that the probability of a new sample $x^{(N+1)}$ taking on certain values to be zero.
-This is sometimes referred to as the \emph{zero count problem}.
+In this section, we give a quick discussion on Bayesian inference for our categorical variable $X$.
+Along the way, we will introduce the Dirichlet distribution and demonstrate how the Bayesian framework is less prone to the zero count problem.
 
-In this section, we give a quick discussion on Bayesian inference for our categorical variable $x$. Along the way, we will introduce the Dirichlet distribution and demonstrate how the Bayesian framework is less prone to the zero count problem.
-
-In a Bayesian framework, we need to specify a prior distribution $p(\bs \pi)$for our model parameters $\bs \pi$. We then use our dataset $S$ to update the prior and obtain a posterior distribution $p(\bs \pi\,|\,S)$ for $\bs \pi$.
-The update is done in accordance with Bayes rule
+In a Bayesian framework, we need to specify a prior distribution $p(\bs \pi)$ for our model parameters $\bs \pi$.
+We then use our dataset $S$ to update the prior and obtain a posterior distribution $p(\bs \pi\,|\,S)$ for $\bs \pi$.
+The update is done in accordance with \emph{Bayes rule}:
 \begin{equation}
 \label{eqn:bayes}
 p(\bs \pi \,|\, S) = \frac{p(S\,|\,\bs \pi) p(\bs \pi)}{\int_{\bs \pi} p(S\,|\,\bs \pi)p(\bs \pi)d\bs\pi}.
@@ -317,7 +322,8 @@ However, for some likelihood models, we can find a parametric family of distribu
 The prior is then said to be \emph{conjugate} to the likelihood function and the parameters of the conjugate family are referred to as \emph{hyper-parameters}.
 If we have conjugacy, computing the posterior is simply a matter of updating the hyper-parameters.
 
-\subsubsection*{\normalfont \small \bfseries Dirichlet Distributions}
+\subsection{The Dirichlet Distribution}
+\label{sect:dirdistro}
 Looking at equation \ref{eqn:catlik} we see that the conjugate prior to a categorical likelihood function needs to have support over the probability simplex $\Delta_K$ and have a pdf of the form 
 \begin{equation}
 p(\bs \pi) \propto \prod\nolimits_{k=1}^K \pi_k^{\hat\alpha_k}.
@@ -338,6 +344,7 @@ is defined as
 \Dir(\bs \pi\,|\,\bs \alpha) = \mathbbm{1}\{\bs \pi \in \Delta_K\}\frac{\Gamma(\sum_{k=1}^K\alpha_k)}{\prod_{k=1}^K\Gamma(\alpha_k)}\prod\nolimits_{k=1}^K\pi_k^{\alpha_k - 1} 
 \end{equation}
 The quantities $(\alpha_1,\dots,\alpha_K)$ are the \emph{concentration parameters} of the distribution and we require them to be strictly positive real numbers. 
+
 Figure \ref{fig:dir} shows heat plots of the dirichlet pdf over $\Delta_3$ for different parameter values $\bs \alpha$.
 When $\alpha_k = 1$ for all values of $k$ we get the uniform distribution.
 If $\alpha_k  > 1$ we get a unimodal distribution where the position of the peak depends on the relative sizes of the $\alpha_k$ and the size of the peak depends on the magnitudes of the $\alpha_k$.
@@ -362,7 +369,7 @@ The derivation is symmetric for the remaining components of $\bs \pi$, thus
 \mathbbm{E}\left[\bs \pi \right] = \frac{\bs \alpha}{\alpha_0}
 \end{equation}
 
-Often, a symmetric Dirichlet distribution of the form $\alpha_k = \alpha \forall k$ is used as prior.
+Often, a symmetric Dirichlet distribution of the form $\alpha_k = \alpha \,\,\forall k$ is used as prior.
 In this case, the mean of the $k$th component of $\pi_k$ is $\mathbbm{E}\left[\pi_k\right] = 1/K$.
 It can be shown that the variance of $\pi_k$ is given by
 \begin{equation}
@@ -371,8 +378,8 @@ It can be shown that the variance of $\pi_k$ is given by
 \end{equation}
 In this case, $\alpha$ corresponds to the inverse variance of the distribution.
 
-\subsubsection*{\normalfont \small \bfseries Conjugate Bayesian Inference of Categorical Variables}
-Previously, we had $x\,|\,\bs \pi \sim Cat(\pi_1,\dots,\pi_K)$.
+%\subsubsection*{\normalfont \small \bfseries Conjugate Bayesian Inference of Categorical Variables}
+Previously, we had $x\,|\,\bs \pi \sim \Cat(\pi_1,\dots,\pi_K)$.
 Suppose we give $\bs \pi$ a Dirichlet prior: $\bs \pi \sim \Dir(\bs \alpha)$.
 
 Once we have a set of observations $S = \{x^{(i)}\}_{i=1}^N$, we are interested in how this affects our believe about the parameters $\bs \pi$, i.e. what is the posterior?
@@ -411,18 +418,18 @@ This is the distribution of a sample $X$ before any data is observed and is obta
 p(x = k\,|\,\bs \alpha) = \frac{\alpha_k}{\alpha_0}
 \end{equation}
 which is just the prior expected value of $\pi_k$.
-Thus, $x \sim \Cat(\frac{\alpha_1}{\alpha_0},\dots,\frac{\alpha_K}{\alpha_0})$.
+Thus, $X \sim \Cat(\frac{\alpha_1}{\alpha_0},\dots,\frac{\alpha_K}{\alpha_0})$.
 
 For more information on the Bayesian and frequentist analysis of categorical data and the Dirichlet distribution, see \cite{Bishop, Murphy}.
 
 
-\section{The Dirichlet Process}
+\section{Definition of the Dirichlet Process}
 \label{sect:dp}
 Having discussed the Dirichlet distribution and its role in the parametric Bayesian analysis of discrete random variables, we are now ready to explore the Dirichlet process and its role in Bayesian nonparametrics.
 In this section, we will first give an informal description of the Dirichlet process and show how draws from a Dirichlet process can be visualized.
 We then give a formal mathematical definition of the DP and discribe its parameters.
 
-\subsubsection*{\normalfont \small \bfseries From the Dirichlet Distribution to the Dirichlet Process}
+\subsection{From the Dirichlet Distribution to the Dirichlet Process}
 We saw that the Dirichlet distribution can be used as a prior for categorical variables when the number of possible states $K$ is finite and known. Draws from a Dirichlet distribution give us a probability vector $\bs \pi$ of length $K$. For this reason, we can think of the Dirichlet distribution as a distribution over distributions.
 
 The Dirichlet Process is the non-parametric extension of the Dirichlet distribution.
@@ -459,7 +466,7 @@ If we have a random variable $\theta$ that takes values in $\Omega$, then the me
 If $A$ is measurable subset of $\Omega$, we can define $Pr(\theta \in A) = G(A)$.
 %However, it turns out that draws from a Dirichlet process are discrete measures on $\Omega$ almost surely (i.e. with probability one).
 
-\subsubsection*{\normalfont \small \bfseries A mathematical definition of the Dirichlet process}
+\subsection{A mathematical definition of the Dirichlet process}
 Let $A_1,\dots,A_K$ be a finite partition of $\Omega$.
 This means $A_1 \cup \dots \cup A_K = \Omega$ and $A_k$ are pairwise disjoint.
 If $G$ is a measure on $\Omega$, then $(A_k)$ is some number between $0$ and $1$ and $\sum_{k=1}^K G(A_k) = 1$.
@@ -521,7 +528,7 @@ Since then, there have been several representations of the Dirichlet process exp
 In this section, we will briefly review some of these representations and show off its conjugacy, clustering and discreteness properties.
 This section leans heavily on \cite{Teh2010a}.
 
-\subsubsection*{\normalfont \small \bfseries Conjugacy and the Blackwell-MacQueen Urn Scheme}
+\subsection{Conjugacy and the Blackwell-MacQueen Urn Scheme}
 Suppose $G$ is Dirichlet process distributed, $G \sim \DP(\alpha,H)$.
 Then $G$ is a random probability measure over $\Omega$ and we may treat it as a probability distribution over $\Omega$ (with a slight omission of the measure theoretic details).
 Let $\theta \in \Omega$ be a sample drawn from $G$, $\theta \sim G$.
@@ -606,7 +613,7 @@ Hence, $G$ must be entirely made up of a sum of point-masses.
 In other words, $G$ is a discrete measure.
 In the next section, we will see even more explcitly that samples $G$ from a Dirichlet process are discrete.
 
-\subsubsection*{\normalfont \small \bfseries The Stick-breaking construction}
+\subsection{The Stick-breaking construction}
 We now give a constructive definition of the Dirichlet process known as the \emph{stick-breaking construction}.
 This will solidify our intuition that samples from $\DP(\alpha,H)$ are discrete measures.
 
@@ -669,9 +676,11 @@ G = \sum_{k=1}^\infty \pi_k \delta_{\theta^{(k)}}
 Sethuraman \cite{sethuraman94} proved that $G \sim \DP(\alpha,H)$ under very general conditions (thereby also giving a more straightforward and general proof of the existence of Dirichlet processes than seen before).
 The stick-breaking construction shows in a very straightforward way that samples from a Dirichlet distribution are discrete measures.
 
-\subsubsection*{\normalfont \small \bfseries Clustering property of the Dirichlet process}
-\label{sect:clust}
-In this section, we will explore the clustering property of Dirichlet processes.
+\subsection{Clustering property of the Dirichlet process and the Chinese Restaurant Process}
+\label{sect:crp}
+In this section, we explore the clustering property of Dirichlet processes.
+We will show that the DP induces a distribution over partitions of integers known as the \emph{Chinese restaurant process} (CRP).
+The CRP teases out the clustering property from the DP, just like the stick-breaking construction teased out the discreteness-property.
 
 Given a set of samples $\theta^{(1)},\dots,\theta^{(N)}$ generated via the Blackwell-MacQueen urn scheme, we used equation (\ref{eqn:dpprobsame}) to argue that there is a positive probability several samples take on the same value.
 Since we have repeated values, let us denote the distinct values by $\bar \theta_1, \dots, \bar \theta_K$, where $K \leq N$.
@@ -683,9 +692,6 @@ To see that, consider again equation (\ref{eqn:dpprobsame}) and note that it imp
 Pr(\theta^{(N+1)} = \bar \theta_k) \propto N_k = \sum_{i=1}^N \mathbbm{1}\{\theta^{(i)} = \bar \theta_k\}.
 \end{equation}
 Thus, the larger the cluster size $N_k$, the greater the probability that a new sample joins cluster $k$.
-
-\subsubsection*{\normalfont \small \bfseries The Chinese-Restaurant Process}
-\label{sect:crp}
 
 \begin{figure}
 \begin{tikzpicture}
@@ -727,9 +733,6 @@ Currently, the induced partition over the integers $\{1,2,3,4,5\}$ is $\{\{1,3,4
 \label{fig:crp}
 \end{figure}
 
-We now show that a DP induces a distribution over partitions of integers known as the \emph{Chinese restaurant process} (CRP).
-The CRP teases out the clustering property from the DP, just like the stick-breaking construction teased out the discreteness-property.
-
 Consider again our samples $\theta^{(1)},\dots,\theta^{(N)}$ and its unique values $\bar \theta_1,\dots,\bar \theta_K$.
 This sample induces a partitioning of the set of integers $[N] = {1,\dots,N}$ into $K$ clusters such that $i$ is in cluster $k$ if $\theta^{(i)} = \bar \theta_k$.
 Since our values $\theta^{(i)}$ are randomly, the induced partitioning is also random and its distribution is known as the Chinese restaurant process.
@@ -762,15 +765,12 @@ where $z_i$ is the table at which customer $i$ is sitting at.
 
 We will return to the Chinese restaurant process in the next section when we discuss Dirichlet mixtures as it builds the basis for our inference method.
 
-
-
 \section{The Dirichlet Process Mixture}
 \label{sect:DPM}
 So far, the discussion has been about the properties of the Dirichlet process as a stochastic object.
 In this section, we show how Dirichlet processes can be used for clustering and to model data via \emph{Dirchlet process mixtures (DPM)}.
 We first describe the model in general terms.
 Next we explain how to fit the parameters of the model via Gibbs sampling and give a brief overview of alternative inference methods.
-Following this, we go in detail through our C++ implementation of the DPM with a Normal Inverse Wishart conjugate prior and give a brief demonstration on some test data.
 
 \subsection{Density Estimation and Clustering using Dirichlet Processes}
 Suppose we have a dataset $S = \{x^{(i)}\}_{i=1}^N$ that are independently drawn from some unknown distribution and suppose we would like to estimate the density of this distribution.
@@ -831,19 +831,19 @@ But, if we know that the number of clusters in the underlying population is fini
 The most popular approaches to inference in Dirichlet process mixture models are based on Markov chain Monte Carlo (MCMC) methods.
 The 2000 paper by Radford Neal \cite{neal2000} provides an excellent review of inference methods based on Gibbs sampling using the Chinese restaurant process representation of Dirichlet processes.
 In particular, ``algorithm 8" in his paper is still considered to be one of the best MCMC based inference methods for handling non-conjugate priors.
-Since then, there have been proposals for better MCMC inference algorithm such as blocked Gibbs sampling based the stick-breaking representation \cite{ishwaran2001}, Metropolis-Hastings with larger moves \cite{jain2004} and sequential Monte Carlo \cite{fearnhead2004}.
 
-Besides MCMC based algorithms, there have also other approaches to inference in DP mixtures.
+Since then, there have been proposals for better MCMC inference algorithm such as a blocked Gibbs sampler based on the stick-breaking representation \cite{ishwaran2001}, Metropolis-Hastings with larger moves \cite{jain2004} and sequential Monte Carlo \cite{fearnhead2004}.
+
+Besides MCMC based algorithms, there have also been other approaches to inference in DP mixtures.
 An algorithm based on expectation propagation was derived by \cite{minka2003}.
 The first variational Bayes approximation was developed by \cite{blei2006}.
 
-\subsection{A Gibbs Sampler for Dirichlet Process Mixtures}
+\subsection{Gibbs Sampling}
 Although better methods for inference in DPMs have been developed, we will focus on Gibbs sampling.
 The reason for this is two-fold.
 First, it is generaly considered to be the standard sampler for Dirichlet Process mixtures and very popular due to its simplicity.
 Second, it is the inference method used in the current version of our implementation.
 
-\subsubsection*{\normalfont \small \bfseries Gibbs Sampling}
 Recall that a Gibbs sampler simulates random draws $\bs \Phi = (\Phi_1,\dots,\Phi_D)$ from some multivariate distribution $Q$ on $\Omega$ (with $\dim\Omega = D$) by looping over the dimensions $d \in \{1,\dots,D\}$ and sampling $\Phi_d$ from its conditional distribution given the remaining dimensions (the so-called \emph{full conditional} distribution of $\Phi_d$).
 When sampling $\Phi_d$ from its full conditional $Q(\Phi_d|\,\bs\Phi_{-d} = \bs \phi_{-d})$, the Gibbs sampler always conditions on the most recently generated values of $\bs \Phi_{-d}$.
 \footnote{Recall that we used the $``-d"$ subscript to denote ``all except $d$" so that $\bs \phi_{-d}$ is a short-hand for $(\phi_1,\dots,\phi_{d-1},\phi_{d+1},\dots,\phi_{D})$.}
@@ -861,7 +861,7 @@ More explicitly, in the $j$th iteration of the Gibbs sampler, the algorithm samp
 \end{equation}
 In practice, it is often more efficient to randomly permute the dimensions at the start of each iteration, so that the components are sampled in a random order.
 
-\subsubsection*{\normalfont \small \bfseries A na{\"i}ve Gibbs sampler}
+\subsection{A na{\"i}ve Gibbs sampler for Dirichlet Process Mixtures}
 Recall that in the DPM, observations are assumed to be generated according to (\ref{eqn:dpm}) and that two sample $x^{(i)}$ and $x^{(j)}$ are in the same cluster if $\theta^{(i)}=\theta^{(j)}$.
 While the conditional joint distribution of $(\theta^{(1)},\dots,\theta^{(N)})$ given the data is complicated, the derivation of the full conditional $p(\theta^{(i)}|\,\bs\theta^{(-i)},X)$, where $X=\{x^{(1)},\dots,x^{(N)}\}$, is relatively straight forward.
 \footnote{Note that, in accordance with the general description on Gibbs sampling above, we view the variables $\theta^{(1)},\dots,\theta^{(N)}$ as $N$ coordinate variables.}
@@ -910,7 +910,7 @@ The reason is that often, multiple samples $x$ will be associated with the same 
 However, the algorithm is unable to change the parameter value for more than one $x$ simultaneously. 
 So in order for the algorithm to change the parameter value for all $x$ within a cluster, it has to do so individually for each observation, thereby passing through a low-probability intermediate state in which the cluster is split.
 
-\subsubsection*{\normalfont \small \bfseries An improved Gibbs Sampler}
+\subsection{The standard Gibbs Sampler for Dirichlet Process Mixtures}
 We can improve our algorithm by splitting up inference for the cluster assignments and inference for the cluster parameters.
 To do this, we again introduce our cluster assignment variable $z^{(i)}$ defined such that $z^{(i)}=k$ if and only if $x^{(i)}$ is in cluster $k$.
 We also shift focus to the distinct cluster parameters $\bar \theta_1,\dots,\bar \theta_K$ present in our data. 
@@ -1049,7 +1049,6 @@ We can interpret $\int_\Omega f(x^{(N+1)}|\,\theta)H(\theta)d\theta$ as a mixtur
 For more details on Gibbs sampling in DP mixtures, see \cite{neal2000,orbanz2014}.
 
 
-
 \section{Implementation of the Normal-Inverse-Wishart Dirichlet Process Mixture model}
 \label{sect:implementation}
 In this section, we will describe our implementation of the Dirichlet process mixture model.
@@ -1063,12 +1062,10 @@ The pdf of the Gaussian is given by
 \begin{equation}
 \mathcal{N}(\bs x|\,\bs\mu,\bs\Sigma) = (2\pi)^{-\frac{1}{2}D}|\bs\Sigma|^{-\frac{1}{2}} \exp \left((\bs\mu-\bs x)^T \bs\Sigma^{-1} (\bs\mu-\bs x) \right).
 \end{equation}
-
 If we have a dataset of observations $\mathcal{D} = \{\bs x^{(1)},\dots,\bs x^{(N)}\}$ so that $X^{(i)} = \bs x^{(i)}$, we can formulate the likelihood of the data as follows
 \begin{equation}
 p(\mathcal{D}|\,\bs\mu,\bs\Sigma) = \prod_{i=1}^N \mathcal{N}(\bs x^{(i)}|\,\bs \mu,\bs \Sigma).
 \end{equation}
-
 For simplicity, we will put a conjugate prior over the parameters $(\bs\mu,\bs\Sigma)$ which, in our case, is the \emph{Normal-inverse-Wishart} (NIW) distribution.
 Its density function is defined as follows
 \begin{equation}
@@ -1077,17 +1074,14 @@ Its density function is defined as follows
 & \exp\left(-\frac{\kappa_0}{2}(\bs\mu-\bs m_0)^T\bs\Sigma^{-1}(\bs\mu-\bs m_0) -\frac{1}{2}\Tr(\bs\Sigma^{-1}\bs S_0) \right)
 \end{split}
 \end{equation}
-
 where $Z_{NIW}$ is the normalization constant defined by
 \begin{equation}
 \frac{1}{Z_{NIW}} = 2^{\frac{\nu_0 D}{2}}\left(\frac{2\pi}{\kappa_0}\right)^{\frac{D}{2}}|\bs S_0|^{-\frac{\nu_0}{2}}\Gamma_D \left(\frac{\nu_0}{2}\right)
 \end{equation}
-
 and $\Gamma_D$ is the multivariate Gamma function defined as
 \begin{equation}
 \Gamma_D(t) = \pi^{\frac{D(D-1)}{4}} \prod_{j=1}^D \Gamma\left(t + \frac{1-j}{2}\right)
 \end{equation}
-
 We can interpret the hyper-parameters
 \begin{equation*}
 \lambda_0 = \{\bs m_0,\kappa_0,\bs S_0,\nu_0\}
@@ -1127,7 +1121,7 @@ The implementation is written in C++11 and we used the open-source linear algebr
 Most steps in the pseudo-code of algorithm \ref{alg:gibbs2} are independent of our choice for the likelihood model and the prior. 
 The only steps that require some elaboration are sampling the cluster assignment variable $z^{(i)}$ (line 13 in the pseudo-code) and sampling the cluster parameters $\overline\theta_k = \left(\bs\mu_k,\bs\Sigma_k\right)$ (lines 15 and 20).
 
-\subsubsection{Sampling $z^{(i)}$}
+\subsection{Sampling from the Categorical distribution}
 We need to sample $z^{(i)}$ from the categorical distribution $\Cat(\phi_1,\dots,\phi_K,\phi_{K+1})$ where the quantities $\phi_k$ are defined in equations (\ref{eqn:phi_k}) and (\ref{eqn:phi_K+1}).
 Note that we do not need worry about the normalization constant $B$ since we can always retrieve it from the sum-to-one constraint $\sum_{k=1}^{K+1}\phi_k=1$.
 Furthermore, we will work with the logarithm of the unnormalized probabilities $\hat\phi_k = \log(\phi_k/B)$.
@@ -1249,7 +1243,6 @@ Thus, we can sample $(\bs\mu,\bs\Sigma)\sim\mathcal{NIW}(\bs m,\kappa,\bs S,\nu)
 \item Sample $\bs\Sigma$ from an inverse Wishart distribution: $\bs\Sigma \sim \mathcal{IW}(\bs S,\nu)$ using algorithm \ref{alg:IW}
 \item Having generated $\bs\Sigma$, we can sample $\bs\mu$ from a multivariate Gaussian distribution: $\bs\mu \sim \mathcal{N}(\bs m,\frac{1}{\kappa}\bs\Sigma)$ using algorithm \ref{alg:gauss}
 \end{enumerate}
-
 This assumes that we have access to standard normal samples ($\mathcal{N}(0,1)$) and also to samples following a $\mbox{Gamma}(a,b)$ distribution.
 \footnote{The Gamma distribution with shape parameter $a$ and rate parameter $b$, denoted $\mbox{Gamma}(a,b)$, is a continuous distribution that has support over the positive real line $\mathbb{R}_+ = (0,+\infty)$.
 Its pdf is given by
@@ -1265,7 +1258,7 @@ Once we have access to both $\Uniform[0,1]$ samples and $\mathcal{N}(0,1)$ sampl
 We have now discussed all the implementation details.
 The only thing left to do is to specify the hyperparameters of the prior, $\lambda_0$, and the value for the concentration parameter $\alpha$.
 
-We decided to use a weakly informative data-dependent prior, as suggested in \cite{Murphy}:
+We used a weakly informative data-dependent prior, as suggested in \cite{Murphy}:
 \begin{equation}
 \begin{split}
 \bs m_0 &= \ol{\bs x} = \frac{1}{N}\sum_{i=1}^N \bs x^{(i)}\\
@@ -1274,8 +1267,16 @@ We decided to use a weakly informative data-dependent prior, as suggested in \ci
 \nu_0 &= D + 2
 \end{split}
 \end{equation}
-
 In our demonstrations, we have set $\alpha = 1$. 
+
+[Still working on this. Possible demos (inspired by Murphy book and literature on DPM):
+\begin{itemize}
+\item Artificial 2D dataset of size 1000, say : show output after training model on 100, 200, 500 and 1000 datapoints (data added sequentially) $\rightarrow$ shows off how \#clusters grows with size of training set.
+\item Posterior distribution for $K$ (histograms)
+\item Image compression - automatically infer \#clusters. Possibly for different values of $\alpha$.
+\item Artificial 2D data: Show output after $L$ iterations of Gibbs sampler, for different $L$.
+\end{itemize}
+Slightly confused about how to compare speed against Gaussian mixture model or KMeans. There is no clear convergence criterion. Plus, there is probably a lot of obvious optimization that can be done. Perhaps I should try to estimate the complexity? Or try to measure training speed against sample size or dimensionality?]  
 
 \section{Extensions and Further Work}
 \label{sect:conclusion}
