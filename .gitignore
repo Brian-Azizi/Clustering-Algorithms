@@ -1,1 +1,3 @@
 *~
+data_files/MNIST/*
+DPMM/demo/iter/chainClusters.out
