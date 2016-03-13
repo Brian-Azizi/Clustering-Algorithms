@@ -1238,6 +1238,8 @@ We are able to factorise the pdf of the NIW as follows
 where $\mathcal{IW}(\bs\Sigma|\,\bs S,\nu)$ is the pdf of the \emph{inverse Wishart} distribution.
 \footnote{The inverse Wishart distribution is a distribution over symmetric and positive definite $D\times D$ matrices. It is the conjugate prior distribution for the covariance parameter $\bs\Sigma$ of a Gaussian likelihood if we assume that the mean parameter $\bs\mu$ is known.}
 
+
+
 Thus, we can sample $(\bs\mu,\bs\Sigma)\sim\mathcal{NIW}(\bs m,\kappa,\bs S,\nu)$ in the following way:
 \begin{enumerate}
 \item Sample $\bs\Sigma$ from an inverse Wishart distribution: $\bs\Sigma \sim \mathcal{IW}(\bs S,\nu)$ using algorithm \ref{alg:IW}
@@ -1254,29 +1256,68 @@ C++11 has built-in functions that allow for the generation of both types of rand
 If we only have access to $\Uniform[0,1]$ samples, we can generate $\mathcal{N}(0,1)$ samples using the Box-Muller transform \cite{box1958}.
 Once we have access to both $\Uniform[0,1]$ samples and $\mathcal{N}(0,1)$ samples, we can generate $\mbox{Gamma}(a,b)$ samples using the method proposed in \cite{marsaglia2000}.
 
-\subsection{Demonstration}
-We have now discussed all the implementation details.
-The only thing left to do is to specify the hyperparameters of the prior, $\lambda_0$, and the value for the concentration parameter $\alpha$.
 
-We used a weakly informative data-dependent prior, as suggested in \cite{Murphy}:
+\subsection{Demonstration}
+
+\begin{figure*}
+\includegraphics[width=\textwidth,height=4in]{drawing.png}
+\caption{Clustering of $N$ data points using the Dirichlet process mixture.
+(a) $N=1000$ (b) $N=3000$ (c) $N=6000$ (d) $N=10000$.
+Each data set contains the previous one as a subset.}
+\label{fig:size}
+\end{figure*}
+
+\begin{figure*}
+\includegraphics[width=\textwidth,height=3.5in]{drawing3.png}
+\caption{Posterior distribution of the number of clusters $K$ for the data sets in figure \ref{fig:size}.
+The Gibbs sampler was run for 1200 iterations and we discarded the first 200 as burn-in.}
+\label{fig:hist}
+\end{figure*}
+
+
+\begin{figure*}
+\includegraphics[width=\textwidth,height=4in]{drawing4.png}
+\caption{Clustering of the data set in figure \ref{fig:size} (d) using the Dirichlet process mixture model. The inital number of clusters is set to $K=100$ and we show the output of the algorithm after $j$ iterations.
+(a) $j=10$ (b) $j=100$ (c) $j=300$.
+Panel (d) plots $K$ against the number of iterations.}
+\label{fig:iter}
+\end{figure*}
+
+\begin{figure*}
+\includegraphics[width=\textwidth,height=3in]{output.png}
+\caption{Example an application of the Diirichlet process mixture to image segmentation. 
+The original image is on the left and the segmented image is on the right.
+The mode of the posterior distribution for the number of clusters $K$ is $K=19$.}
+\label{fig:pics}
+\end{figure*}
+
+In this secion, we briefly demonstrate the DP mixture model.
+For all examples shown, we set the concentration parameter to $1$ and used a weakly informative data-dependent prior, as suggested in \cite{Murphy}:
 \begin{equation}
 \begin{split}
+\alpha &= 1\\
 \bs m_0 &= \ol{\bs x} = \frac{1}{N}\sum_{i=1}^N \bs x^{(i)}\\
 \kappa_0 &= 0.01\\
 \bs S_0 &= \frac{1}{N}\mbox{diag}\left(\sum_{i=1}^N\left(\bs x^{(i)} - \ol{\bs x}\right)\left(\bs x^{(i)} - \ol{\bs x}\right)\right)\\
 \nu_0 &= D + 2
 \end{split}
 \end{equation}
-In our demonstrations, we have set $\alpha = 1$. 
+Figures \ref{fig:size} and \ref{fig:hist} illustrate how the number of clusters $K$ discovered by the algorithm tends to grow with the size of the data.
+The model parameters are shown as ellipses in Figure \ref{fig:size}.
+Each ellipse corresponds to a cluster, with the location of the ellipse corresponding to the mean parameter of that cluster and its shape corresponding to the covariance parameter.
+Each panel in Figure \ref{fig:hist} depicts the estimated posterior distribution of $K$ for the corresponding panel in Figure \ref{fig:size}.
 
-[Still working on this. Possible demos (inspired by Murphy book and literature on DPM):
-\begin{itemize}
-\item Artificial 2D dataset of size 1000, say : show output after training model on 100, 200, 500 and 1000 datapoints (data added sequentially) $\rightarrow$ shows off how \#clusters grows with size of training set.
-\item Posterior distribution for $K$ (histograms)
-\item Image compression - automatically infer \#clusters. Possibly for different values of $\alpha$.
-\item Artificial 2D data: Show output after $L$ iterations of Gibbs sampler, for different $L$.
-\end{itemize}
-Slightly confused about how to compare speed against Gaussian mixture model or KMeans. There is no clear convergence criterion. Plus, there is probably a lot of obvious optimization that can be done. Perhaps I should try to estimate the complexity? Or try to measure training speed against sample size or dimensionality?]  
+Figure \ref{fig:iter} shows an example of how the Gibbs sampler evolves in the course of the algorithm.
+We use the same data as in Figure \ref{fig:size} (d) and initialize the algorithm with $K=100$.
+At first, the algorithm creates a few redundant cluster (so that $K>100$ after the first iteration).
+This allows the method to get away from the poor initial parameters.
+It is this behaviour that generally allows the algorithm to escape local optima and usually find the globul optimum.
+After 50 iterations, the number of clusters has already shrunk to $K=20$ and after 100 iterations $K=10$.
+We saw in Figure \ref{fig:hist} (d) that the map estimate after 1200 iterations was $K=8$.
+
+Finally, we give an example of applying Dirichlet process mixtures to image segmentation in Figure \ref{fig:pics}.
+Colour-based image segmentation and image compression is often discussed as an application of finite mixture models and the K-Means algorithm.
+The main advantage of the DPM over finite mixture models in this application is that we do not need to specify the number of clusters a priori.
 
 \section{Extensions and Further Work}
 \label{sect:conclusion}
@@ -1320,8 +1361,8 @@ We hope that, with this paper and our software package, we can make Bayesian non
 
 %% References with bibTeX database:
 \section*{Bibliography}
-%\bibliographystyle{elsarticle-num}
-\bibliographystyle{apa}
+\bibliographystyle{elsarticle-num}
+%\bibliographystyle{apa}
 \bibliography{references.bib}
 
 %% Authors are advised to submit their bibtex database files. They are
