@@ -1,9 +1,0 @@
-#!/bin/bash
-#c1=4
-#c2=13
-#paste fisher.dat dpmIDX.out | cut -d' ' -f$c1,$c2,14 >> dpmIDX.dat
-
-paste ../data_files/toyclusters/toyclusters.dat dpmIDX.out >> dpmIDX.dat
-gnuplot plotDPM.plt
-#mv plot.png plot$c1$c2.png
-eog plot.png &

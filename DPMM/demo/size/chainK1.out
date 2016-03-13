@@ -1,0 +1,2007 @@
+Dirichlet Process Mixture Model.
+Input: demo.dat
+Number of iterations of Gibbs Sampler: 1200
+Burn-In: 200
+Initial number of clusters: 1
+Output: Number of cluster (K)
+
+Sweep #201
+2
+Sweep #202
+2
+Sweep #203
+2
+Sweep #204
+2
+Sweep #205
+2
+Sweep #206
+2
+Sweep #207
+2
+Sweep #208
+2
+Sweep #209
+2
+Sweep #210
+2
+Sweep #211
+2
+Sweep #212
+2
+Sweep #213
+2
+Sweep #214
+2
+Sweep #215
+2
+Sweep #216
+2
+Sweep #217
+2
+Sweep #218
+2
+Sweep #219
+3
+Sweep #220
+3
+Sweep #221
+2
+Sweep #222
+2
+Sweep #223
+2
+Sweep #224
+2
+Sweep #225
+2
+Sweep #226
+2
+Sweep #227
+2
+Sweep #228
+2
+Sweep #229
+2
+Sweep #230
+2
+Sweep #231
+2
+Sweep #232
+2
+Sweep #233
+2
+Sweep #234
+2
+Sweep #235
+2
+Sweep #236
+2
+Sweep #237
+2
+Sweep #238
+2
+Sweep #239
+2
+Sweep #240
+2
+Sweep #241
+2
+Sweep #242
+2
+Sweep #243
+2
+Sweep #244
+2
+Sweep #245
+2
+Sweep #246
+2
+Sweep #247
+3
+Sweep #248
+2
+Sweep #249
+2
+Sweep #250
+2
+Sweep #251
+2
+Sweep #252
+2
+Sweep #253
+2
+Sweep #254
+2
+Sweep #255
+2
+Sweep #256
+2
+Sweep #257
+3
+Sweep #258
+2
+Sweep #259
+2
+Sweep #260
+2
+Sweep #261
+3
+Sweep #262
+2
+Sweep #263
+2
+Sweep #264
+2
+Sweep #265
+2
+Sweep #266
+3
+Sweep #267
+2
+Sweep #268
+2
+Sweep #269
+2
+Sweep #270
+2
+Sweep #271
+2
+Sweep #272
+2
+Sweep #273
+2
+Sweep #274
+2
+Sweep #275
+1
+Sweep #276
+1
+Sweep #277
+1
+Sweep #278
+1
+Sweep #279
+1
+Sweep #280
+1
+Sweep #281
+1
+Sweep #282
+2
+Sweep #283
+1
+Sweep #284
+1
+Sweep #285
+1
+Sweep #286
+1
+Sweep #287
+1
+Sweep #288
+1
+Sweep #289
+1
+Sweep #290
+1
+Sweep #291
+1
+Sweep #292
+1
+Sweep #293
+1
+Sweep #294
+1
+Sweep #295
+2
+Sweep #296
+2
+Sweep #297
+2
+Sweep #298
+2
+Sweep #299
+2
+Sweep #300
+2
+Sweep #301
+2
+Sweep #302
+2
+Sweep #303
+2
+Sweep #304
+2
+Sweep #305
+2
+Sweep #306
+2
+Sweep #307
+2
+Sweep #308
+1
+Sweep #309
+1
+Sweep #310
+1
+Sweep #311
+3
+Sweep #312
+2
+Sweep #313
+2
+Sweep #314
+1
+Sweep #315
+1
+Sweep #316
+2
+Sweep #317
+1
+Sweep #318
+1
+Sweep #319
+1
+Sweep #320
+1
+Sweep #321
+1
+Sweep #322
+1
+Sweep #323
+1
+Sweep #324
+1
+Sweep #325
+2
+Sweep #326
+1
+Sweep #327
+2
+Sweep #328
+2
+Sweep #329
+1
+Sweep #330
+1
+Sweep #331
+1
+Sweep #332
+1
+Sweep #333
+1
+Sweep #334
+1
+Sweep #335
+2
+Sweep #336
+2
+Sweep #337
+2
+Sweep #338
+3
+Sweep #339
+2
+Sweep #340
+1
+Sweep #341
+2
+Sweep #342
+1
+Sweep #343
+1
+Sweep #344
+1
+Sweep #345
+1
+Sweep #346
+1
+Sweep #347
+1
+Sweep #348
+1
+Sweep #349
+1
+Sweep #350
+2
+Sweep #351
+1
+Sweep #352
+1
+Sweep #353
+1
+Sweep #354
+1
+Sweep #355
+1
+Sweep #356
+1
+Sweep #357
+1
+Sweep #358
+1
+Sweep #359
+1
+Sweep #360
+2
+Sweep #361
+1
+Sweep #362
+3
+Sweep #363
+3
+Sweep #364
+2
+Sweep #365
+2
+Sweep #366
+2
+Sweep #367
+2
+Sweep #368
+2
+Sweep #369
+1
+Sweep #370
+1
+Sweep #371
+1
+Sweep #372
+1
+Sweep #373
+1
+Sweep #374
+1
+Sweep #375
+2
+Sweep #376
+1
+Sweep #377
+1
+Sweep #378
+1
+Sweep #379
+1
+Sweep #380
+2
+Sweep #381
+1
+Sweep #382
+1
+Sweep #383
+2
+Sweep #384
+2
+Sweep #385
+1
+Sweep #386
+1
+Sweep #387
+2
+Sweep #388
+2
+Sweep #389
+1
+Sweep #390
+2
+Sweep #391
+2
+Sweep #392
+2
+Sweep #393
+2
+Sweep #394
+2
+Sweep #395
+3
+Sweep #396
+3
+Sweep #397
+2
+Sweep #398
+2
+Sweep #399
+2
+Sweep #400
+1
+Sweep #401
+1
+Sweep #402
+1
+Sweep #403
+1
+Sweep #404
+2
+Sweep #405
+1
+Sweep #406
+1
+Sweep #407
+1
+Sweep #408
+2
+Sweep #409
+2
+Sweep #410
+1
+Sweep #411
+1
+Sweep #412
+1
+Sweep #413
+1
+Sweep #414
+1
+Sweep #415
+1
+Sweep #416
+1
+Sweep #417
+1
+Sweep #418
+1
+Sweep #419
+1
+Sweep #420
+1
+Sweep #421
+1
+Sweep #422
+1
+Sweep #423
+1
+Sweep #424
+1
+Sweep #425
+1
+Sweep #426
+2
+Sweep #427
+1
+Sweep #428
+1
+Sweep #429
+2
+Sweep #430
+2
+Sweep #431
+2
+Sweep #432
+1
+Sweep #433
+1
+Sweep #434
+1
+Sweep #435
+1
+Sweep #436
+2
+Sweep #437
+2
+Sweep #438
+1
+Sweep #439
+1
+Sweep #440
+1
+Sweep #441
+1
+Sweep #442
+1
+Sweep #443
+1
+Sweep #444
+1
+Sweep #445
+1
+Sweep #446
+1
+Sweep #447
+1
+Sweep #448
+2
+Sweep #449
+2
+Sweep #450
+2
+Sweep #451
+1
+Sweep #452
+1
+Sweep #453
+1
+Sweep #454
+1
+Sweep #455
+1
+Sweep #456
+1
+Sweep #457
+1
+Sweep #458
+1
+Sweep #459
+1
+Sweep #460
+1
+Sweep #461
+1
+Sweep #462
+1
+Sweep #463
+1
+Sweep #464
+1
+Sweep #465
+1
+Sweep #466
+1
+Sweep #467
+1
+Sweep #468
+1
+Sweep #469
+1
+Sweep #470
+1
+Sweep #471
+1
+Sweep #472
+2
+Sweep #473
+2
+Sweep #474
+2
+Sweep #475
+1
+Sweep #476
+1
+Sweep #477
+1
+Sweep #478
+1
+Sweep #479
+1
+Sweep #480
+1
+Sweep #481
+1
+Sweep #482
+1
+Sweep #483
+1
+Sweep #484
+1
+Sweep #485
+1
+Sweep #486
+1
+Sweep #487
+1
+Sweep #488
+1
+Sweep #489
+2
+Sweep #490
+1
+Sweep #491
+1
+Sweep #492
+1
+Sweep #493
+1
+Sweep #494
+2
+Sweep #495
+1
+Sweep #496
+2
+Sweep #497
+2
+Sweep #498
+2
+Sweep #499
+1
+Sweep #500
+1
+Sweep #501
+1
+Sweep #502
+1
+Sweep #503
+1
+Sweep #504
+1
+Sweep #505
+1
+Sweep #506
+1
+Sweep #507
+1
+Sweep #508
+1
+Sweep #509
+2
+Sweep #510
+1
+Sweep #511
+2
+Sweep #512
+2
+Sweep #513
+1
+Sweep #514
+1
+Sweep #515
+2
+Sweep #516
+1
+Sweep #517
+1
+Sweep #518
+1
+Sweep #519
+1
+Sweep #520
+1
+Sweep #521
+1
+Sweep #522
+1
+Sweep #523
+1
+Sweep #524
+2
+Sweep #525
+1
+Sweep #526
+1
+Sweep #527
+1
+Sweep #528
+2
+Sweep #529
+3
+Sweep #530
+1
+Sweep #531
+1
+Sweep #532
+1
+Sweep #533
+1
+Sweep #534
+1
+Sweep #535
+1
+Sweep #536
+1
+Sweep #537
+1
+Sweep #538
+1
+Sweep #539
+1
+Sweep #540
+1
+Sweep #541
+1
+Sweep #542
+1
+Sweep #543
+1
+Sweep #544
+1
+Sweep #545
+1
+Sweep #546
+1
+Sweep #547
+1
+Sweep #548
+1
+Sweep #549
+1
+Sweep #550
+1
+Sweep #551
+1
+Sweep #552
+1
+Sweep #553
+1
+Sweep #554
+1
+Sweep #555
+2
+Sweep #556
+1
+Sweep #557
+1
+Sweep #558
+1
+Sweep #559
+1
+Sweep #560
+2
+Sweep #561
+1
+Sweep #562
+1
+Sweep #563
+1
+Sweep #564
+1
+Sweep #565
+1
+Sweep #566
+1
+Sweep #567
+1
+Sweep #568
+1
+Sweep #569
+1
+Sweep #570
+1
+Sweep #571
+1
+Sweep #572
+1
+Sweep #573
+1
+Sweep #574
+1
+Sweep #575
+1
+Sweep #576
+1
+Sweep #577
+2
+Sweep #578
+1
+Sweep #579
+1
+Sweep #580
+1
+Sweep #581
+1
+Sweep #582
+1
+Sweep #583
+1
+Sweep #584
+1
+Sweep #585
+1
+Sweep #586
+3
+Sweep #587
+2
+Sweep #588
+2
+Sweep #589
+2
+Sweep #590
+2
+Sweep #591
+2
+Sweep #592
+2
+Sweep #593
+2
+Sweep #594
+2
+Sweep #595
+2
+Sweep #596
+1
+Sweep #597
+1
+Sweep #598
+1
+Sweep #599
+1
+Sweep #600
+1
+Sweep #601
+1
+Sweep #602
+1
+Sweep #603
+1
+Sweep #604
+1
+Sweep #605
+1
+Sweep #606
+1
+Sweep #607
+1
+Sweep #608
+2
+Sweep #609
+1
+Sweep #610
+1
+Sweep #611
+1
+Sweep #612
+1
+Sweep #613
+1
+Sweep #614
+2
+Sweep #615
+2
+Sweep #616
+2
+Sweep #617
+1
+Sweep #618
+1
+Sweep #619
+1
+Sweep #620
+1
+Sweep #621
+1
+Sweep #622
+3
+Sweep #623
+1
+Sweep #624
+1
+Sweep #625
+1
+Sweep #626
+1
+Sweep #627
+1
+Sweep #628
+1
+Sweep #629
+1
+Sweep #630
+1
+Sweep #631
+1
+Sweep #632
+2
+Sweep #633
+1
+Sweep #634
+1
+Sweep #635
+1
+Sweep #636
+1
+Sweep #637
+1
+Sweep #638
+1
+Sweep #639
+1
+Sweep #640
+1
+Sweep #641
+1
+Sweep #642
+1
+Sweep #643
+1
+Sweep #644
+1
+Sweep #645
+1
+Sweep #646
+2
+Sweep #647
+1
+Sweep #648
+1
+Sweep #649
+2
+Sweep #650
+2
+Sweep #651
+2
+Sweep #652
+2
+Sweep #653
+3
+Sweep #654
+2
+Sweep #655
+2
+Sweep #656
+2
+Sweep #657
+2
+Sweep #658
+3
+Sweep #659
+3
+Sweep #660
+3
+Sweep #661
+1
+Sweep #662
+1
+Sweep #663
+1
+Sweep #664
+1
+Sweep #665
+1
+Sweep #666
+2
+Sweep #667
+1
+Sweep #668
+1
+Sweep #669
+1
+Sweep #670
+1
+Sweep #671
+1
+Sweep #672
+1
+Sweep #673
+1
+Sweep #674
+1
+Sweep #675
+2
+Sweep #676
+1
+Sweep #677
+1
+Sweep #678
+1
+Sweep #679
+1
+Sweep #680
+1
+Sweep #681
+2
+Sweep #682
+1
+Sweep #683
+1
+Sweep #684
+1
+Sweep #685
+2
+Sweep #686
+2
+Sweep #687
+2
+Sweep #688
+2
+Sweep #689
+1
+Sweep #690
+1
+Sweep #691
+1
+Sweep #692
+2
+Sweep #693
+2
+Sweep #694
+2
+Sweep #695
+2
+Sweep #696
+2
+Sweep #697
+1
+Sweep #698
+1
+Sweep #699
+2
+Sweep #700
+1
+Sweep #701
+2
+Sweep #702
+1
+Sweep #703
+1
+Sweep #704
+1
+Sweep #705
+1
+Sweep #706
+2
+Sweep #707
+1
+Sweep #708
+1
+Sweep #709
+1
+Sweep #710
+1
+Sweep #711
+1
+Sweep #712
+1
+Sweep #713
+1
+Sweep #714
+1
+Sweep #715
+1
+Sweep #716
+1
+Sweep #717
+3
+Sweep #718
+2
+Sweep #719
+1
+Sweep #720
+1
+Sweep #721
+1
+Sweep #722
+2
+Sweep #723
+1
+Sweep #724
+1
+Sweep #725
+1
+Sweep #726
+1
+Sweep #727
+1
+Sweep #728
+1
+Sweep #729
+1
+Sweep #730
+1
+Sweep #731
+1
+Sweep #732
+2
+Sweep #733
+1
+Sweep #734
+1
+Sweep #735
+1
+Sweep #736
+1
+Sweep #737
+1
+Sweep #738
+1
+Sweep #739
+1
+Sweep #740
+1
+Sweep #741
+1
+Sweep #742
+1
+Sweep #743
+1
+Sweep #744
+2
+Sweep #745
+1
+Sweep #746
+1
+Sweep #747
+1
+Sweep #748
+1
+Sweep #749
+1
+Sweep #750
+1
+Sweep #751
+1
+Sweep #752
+1
+Sweep #753
+1
+Sweep #754
+2
+Sweep #755
+1
+Sweep #756
+2
+Sweep #757
+1
+Sweep #758
+1
+Sweep #759
+1
+Sweep #760
+1
+Sweep #761
+1
+Sweep #762
+1
+Sweep #763
+2
+Sweep #764
+1
+Sweep #765
+1
+Sweep #766
+2
+Sweep #767
+1
+Sweep #768
+1
+Sweep #769
+1
+Sweep #770
+1
+Sweep #771
+2
+Sweep #772
+2
+Sweep #773
+2
+Sweep #774
+2
+Sweep #775
+3
+Sweep #776
+3
+Sweep #777
+2
+Sweep #778
+2
+Sweep #779
+2
+Sweep #780
+2
+Sweep #781
+2
+Sweep #782
+2
+Sweep #783
+2
+Sweep #784
+2
+Sweep #785
+2
+Sweep #786
+2
+Sweep #787
+2
+Sweep #788
+2
+Sweep #789
+2
+Sweep #790
+2
+Sweep #791
+2
+Sweep #792
+2
+Sweep #793
+2
+Sweep #794
+1
+Sweep #795
+1
+Sweep #796
+1
+Sweep #797
+1
+Sweep #798
+1
+Sweep #799
+3
+Sweep #800
+2
+Sweep #801
+3
+Sweep #802
+3
+Sweep #803
+2
+Sweep #804
+2
+Sweep #805
+2
+Sweep #806
+2
+Sweep #807
+2
+Sweep #808
+3
+Sweep #809
+3
+Sweep #810
+4
+Sweep #811
+3
+Sweep #812
+3
+Sweep #813
+3
+Sweep #814
+2
+Sweep #815
+2
+Sweep #816
+2
+Sweep #817
+3
+Sweep #818
+2
+Sweep #819
+2
+Sweep #820
+3
+Sweep #821
+3
+Sweep #822
+3
+Sweep #823
+3
+Sweep #824
+3
+Sweep #825
+2
+Sweep #826
+2
+Sweep #827
+2
+Sweep #828
+2
+Sweep #829
+2
+Sweep #830
+2
+Sweep #831
+2
+Sweep #832
+3
+Sweep #833
+2
+Sweep #834
+3
+Sweep #835
+3
+Sweep #836
+3
+Sweep #837
+4
+Sweep #838
+2
+Sweep #839
+2
+Sweep #840
+1
+Sweep #841
+1
+Sweep #842
+1
+Sweep #843
+1
+Sweep #844
+1
+Sweep #845
+1
+Sweep #846
+1
+Sweep #847
+1
+Sweep #848
+1
+Sweep #849
+1
+Sweep #850
+1
+Sweep #851
+1
+Sweep #852
+2
+Sweep #853
+2
+Sweep #854
+3
+Sweep #855
+2
+Sweep #856
+2
+Sweep #857
+2
+Sweep #858
+2
+Sweep #859
+2
+Sweep #860
+2
+Sweep #861
+2
+Sweep #862
+2
+Sweep #863
+2
+Sweep #864
+2
+Sweep #865
+2
+Sweep #866
+1
+Sweep #867
+1
+Sweep #868
+1
+Sweep #869
+1
+Sweep #870
+1
+Sweep #871
+1
+Sweep #872
+2
+Sweep #873
+1
+Sweep #874
+1
+Sweep #875
+1
+Sweep #876
+1
+Sweep #877
+1
+Sweep #878
+1
+Sweep #879
+1
+Sweep #880
+1
+Sweep #881
+2
+Sweep #882
+1
+Sweep #883
+2
+Sweep #884
+3
+Sweep #885
+2
+Sweep #886
+2
+Sweep #887
+2
+Sweep #888
+1
+Sweep #889
+1
+Sweep #890
+1
+Sweep #891
+1
+Sweep #892
+1
+Sweep #893
+2
+Sweep #894
+1
+Sweep #895
+1
+Sweep #896
+2
+Sweep #897
+2
+Sweep #898
+2
+Sweep #899
+2
+Sweep #900
+2
+Sweep #901
+2
+Sweep #902
+2
+Sweep #903
+2
+Sweep #904
+2
+Sweep #905
+2
+Sweep #906
+2
+Sweep #907
+1
+Sweep #908
+1
+Sweep #909
+1
+Sweep #910
+1
+Sweep #911
+2
+Sweep #912
+3
+Sweep #913
+2
+Sweep #914
+2
+Sweep #915
+3
+Sweep #916
+2
+Sweep #917
+2
+Sweep #918
+2
+Sweep #919
+2
+Sweep #920
+2
+Sweep #921
+2
+Sweep #922
+2
+Sweep #923
+3
+Sweep #924
+2
+Sweep #925
+2
+Sweep #926
+2
+Sweep #927
+3
+Sweep #928
+2
+Sweep #929
+2
+Sweep #930
+2
+Sweep #931
+2
+Sweep #932
+2
+Sweep #933
+1
+Sweep #934
+1
+Sweep #935
+1
+Sweep #936
+1
+Sweep #937
+1
+Sweep #938
+1
+Sweep #939
+1
+Sweep #940
+1
+Sweep #941
+1
+Sweep #942
+1
+Sweep #943
+2
+Sweep #944
+1
+Sweep #945
+1
+Sweep #946
+1
+Sweep #947
+1
+Sweep #948
+2
+Sweep #949
+2
+Sweep #950
+2
+Sweep #951
+1
+Sweep #952
+1
+Sweep #953
+1
+Sweep #954
+1
+Sweep #955
+1
+Sweep #956
+1
+Sweep #957
+1
+Sweep #958
+2
+Sweep #959
+2
+Sweep #960
+2
+Sweep #961
+1
+Sweep #962
+1
+Sweep #963
+1
+Sweep #964
+1
+Sweep #965
+2
+Sweep #966
+1
+Sweep #967
+1
+Sweep #968
+1
+Sweep #969
+1
+Sweep #970
+1
+Sweep #971
+1
+Sweep #972
+1
+Sweep #973
+1
+Sweep #974
+1
+Sweep #975
+1
+Sweep #976
+1
+Sweep #977
+2
+Sweep #978
+2
+Sweep #979
+3
+Sweep #980
+3
+Sweep #981
+2
+Sweep #982
+2
+Sweep #983
+2
+Sweep #984
+2
+Sweep #985
+2
+Sweep #986
+2
+Sweep #987
+2
+Sweep #988
+1
+Sweep #989
+2
+Sweep #990
+2
+Sweep #991
+1
+Sweep #992
+1
+Sweep #993
+1
+Sweep #994
+1
+Sweep #995
+1
+Sweep #996
+1
+Sweep #997
+1
+Sweep #998
+1
+Sweep #999
+3
+Sweep #1000
+1
+Sweep #1001
+2
+Sweep #1002
+2
+Sweep #1003
+3
+Sweep #1004
+2
+Sweep #1005
+2
+Sweep #1006
+2
+Sweep #1007
+2
+Sweep #1008
+2
+Sweep #1009
+2
+Sweep #1010
+2
+Sweep #1011
+2
+Sweep #1012
+2
+Sweep #1013
+2
+Sweep #1014
+2
+Sweep #1015
+2
+Sweep #1016
+2
+Sweep #1017
+1
+Sweep #1018
+1
+Sweep #1019
+1
+Sweep #1020
+1
+Sweep #1021
+1
+Sweep #1022
+1
+Sweep #1023
+2
+Sweep #1024
+1
+Sweep #1025
+1
+Sweep #1026
+1
+Sweep #1027
+1
+Sweep #1028
+1
+Sweep #1029
+1
+Sweep #1030
+1
+Sweep #1031
+1
+Sweep #1032
+1
+Sweep #1033
+2
+Sweep #1034
+2
+Sweep #1035
+2
+Sweep #1036
+2
+Sweep #1037
+2
+Sweep #1038
+2
+Sweep #1039
+3
+Sweep #1040
+1
+Sweep #1041
+2
+Sweep #1042
+1
+Sweep #1043
+1
+Sweep #1044
+1
+Sweep #1045
+1
+Sweep #1046
+2
+Sweep #1047
+1
+Sweep #1048
+1
+Sweep #1049
+1
+Sweep #1050
+1
+Sweep #1051
+1
+Sweep #1052
+1
+Sweep #1053
+1
+Sweep #1054
+1
+Sweep #1055
+1
+Sweep #1056
+2
+Sweep #1057
+1
+Sweep #1058
+2
+Sweep #1059
+1
+Sweep #1060
+1
+Sweep #1061
+1
+Sweep #1062
+2
+Sweep #1063
+2
+Sweep #1064
+1
+Sweep #1065
+1
+Sweep #1066
+1
+Sweep #1067
+1
+Sweep #1068
+1
+Sweep #1069
+1
+Sweep #1070
+1
+Sweep #1071
+1
+Sweep #1072
+1
+Sweep #1073
+1
+Sweep #1074
+1
+Sweep #1075
+1
+Sweep #1076
+1
+Sweep #1077
+1
+Sweep #1078
+1
+Sweep #1079
+1
+Sweep #1080
+1
+Sweep #1081
+1
+Sweep #1082
+1
+Sweep #1083
+1
+Sweep #1084
+2
+Sweep #1085
+2
+Sweep #1086
+3
+Sweep #1087
+4
+Sweep #1088
+3
+Sweep #1089
+3
+Sweep #1090
+4
+Sweep #1091
+3
+Sweep #1092
+3
+Sweep #1093
+3
+Sweep #1094
+4
+Sweep #1095
+3
+Sweep #1096
+3
+Sweep #1097
+3
+Sweep #1098
+3
+Sweep #1099
+3
+Sweep #1100
+3
+Sweep #1101
+2
+Sweep #1102
+2
+Sweep #1103
+2
+Sweep #1104
+2
+Sweep #1105
+2
+Sweep #1106
+1
+Sweep #1107
+2
+Sweep #1108
+1
+Sweep #1109
+1
+Sweep #1110
+1
+Sweep #1111
+2
+Sweep #1112
+1
+Sweep #1113
+2
+Sweep #1114
+3
+Sweep #1115
+2
+Sweep #1116
+2
+Sweep #1117
+3
+Sweep #1118
+2
+Sweep #1119
+3
+Sweep #1120
+2
+Sweep #1121
+2
+Sweep #1122
+2
+Sweep #1123
+2
+Sweep #1124
+2
+Sweep #1125
+2
+Sweep #1126
+2
+Sweep #1127
+2
+Sweep #1128
+2
+Sweep #1129
+1
+Sweep #1130
+2
+Sweep #1131
+2
+Sweep #1132
+2
+Sweep #1133
+3
+Sweep #1134
+2
+Sweep #1135
+3
+Sweep #1136
+2
+Sweep #1137
+3
+Sweep #1138
+4
+Sweep #1139
+3
+Sweep #1140
+3
+Sweep #1141
+3
+Sweep #1142
+3
+Sweep #1143
+3
+Sweep #1144
+2
+Sweep #1145
+2
+Sweep #1146
+2
+Sweep #1147
+3
+Sweep #1148
+3
+Sweep #1149
+3
+Sweep #1150
+2
+Sweep #1151
+1
+Sweep #1152
+1
+Sweep #1153
+1
+Sweep #1154
+1
+Sweep #1155
+1
+Sweep #1156
+1
+Sweep #1157
+1
+Sweep #1158
+1
+Sweep #1159
+1
+Sweep #1160
+1
+Sweep #1161
+2
+Sweep #1162
+3
+Sweep #1163
+1
+Sweep #1164
+1
+Sweep #1165
+1
+Sweep #1166
+1
+Sweep #1167
+1
+Sweep #1168
+1
+Sweep #1169
+1
+Sweep #1170
+1
+Sweep #1171
+1
+Sweep #1172
+1
+Sweep #1173
+1
+Sweep #1174
+1
+Sweep #1175
+1
+Sweep #1176
+1
+Sweep #1177
+1
+Sweep #1178
+1
+Sweep #1179
+1
+Sweep #1180
+1
+Sweep #1181
+1
+Sweep #1182
+1
+Sweep #1183
+1
+Sweep #1184
+1
+Sweep #1185
+1
+Sweep #1186
+1
+Sweep #1187
+1
+Sweep #1188
+1
+Sweep #1189
+1
+Sweep #1190
+1
+Sweep #1191
+1
+Sweep #1192
+1
+Sweep #1193
+1
+Sweep #1194
+1
+Sweep #1195
+1
+Sweep #1196
+1
+Sweep #1197
+1
+Sweep #1198
+1
+Sweep #1199
+2
+Sweep #1200
+2

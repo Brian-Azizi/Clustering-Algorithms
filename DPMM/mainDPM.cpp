@@ -35,7 +35,7 @@ int main()
   //char inputFile[] = "girl.dat";
 
   // H) Pool.png (383x512, RGB, already unrolled)
-  char inputFile[] = "pool.dat";
+  //char inputFile[] = "pool.dat";
 
   // I) Cat.png (733x490, RGB, unrolled)
   //char inputFile[] = "cat.dat";
@@ -46,8 +46,14 @@ int main()
   // K) Monarch.png (512x768, RGB, unrolled)
   //char inputFile[] = "monarch.dat";
 
-  //L) tulips.png (512x768 ,RGB, unrolled)
+  // L) tulips.png (512x768 ,RGB, unrolled)
   //char inputFile[] = "tulips.dat";
+  
+  // M) demo.dat (2d data)
+  //char inputFile[] = "demo.dat";
+
+  // N) brain.dat (712x614, RBG, unrolled)
+  char inputFile[] = "brain.dat";
 
   // INITIALIZE PARAMETERS
   X.load(inputFile);
@@ -59,12 +65,9 @@ int main()
   for (arma::uword i = 0; i < N; ++i) {
     ids(i,0) = i;
   }
-  
   arma::arma_rng::set_seed_random(); // set arma rng
-  // int seed = time(NULL);	// set RNG seed to current time
-  // srand(seed);
 
-  arma::uword initial_K = 32;   // initial number of clusters
+  arma::uword initial_K = 10;   // initial number of clusters. Must be positive.
   arma::uword K = initial_K;
   
   arma::umat clusters(N,1); // contains cluster assignments for each data point
@@ -89,16 +92,7 @@ int main()
   }
 
   arma::umat uword_dummy(1,1);	// dummy 1x1 matrix;
-  // for (arma::uword i = 0; i <N; ++i) {
-  //   std::cout << sigma[i] << std::endl;
-  // }
-  // std::cout << X << std::endl
-  // 	    << N << std::endl
-  // 	    << D << std::endl
-  // 	    << K << std::endl
-  // 	    << clusters << std::endl
-  // 	    << cluster_sizes << std::endl
-  //	    << ids << std::endl;
+  
 
   // INITIALIZE HYPER PARAMETERS
   // Dirichlet Process concentration parameter is alpha:
@@ -108,56 +102,42 @@ int main()
   arma::mat perturbation(D,D,arma::fill::eye);
   perturbation *= 0.000001;
   //const arma::mat S_0 = arma::cov(X,X,1) + perturbation; // S_xbar / N
-  const arma::mat S_0(D,D,arma::fill::eye);
+  //  const arma::mat S_0(D,D,arma::fill::eye);
+  const arma::mat S_0 = arma::diagmat(arma::cov(X,X,1)); // diag(S_xbar) / N
   const double nu_0 = D + 2;
   const arma::mat m_0 = mean(X).t();
   const double k_0 = 0.01;
-  // std::cout << "S_0" << S_0 << std::endl;
-  // std::cout << S_0 << std::endl
-  // 	    << nu_0 << std::endl
-  // 	    << m_0 << std::endl
-  // 	    << k_0 << std::endl;
 
 
   // INITIALIZE SAMPLING PARAMETERS
-  arma::uword NUM_SWEEPS = 250;	// number of Gibbs iterations
+  arma::uword NUM_SWEEPS = 100;// number of Gibbs iterations
   bool SAVE_CHAIN = false;	// save output of each Gibbs iteration?
-  // arma::uword BURN_IN = NUM_SWEEPS - 10;
-  // arma::uword CHAINSIZE = NUM_SWEEPS - BURN_IN;
-  // std::vector<arma::uword> chain_K(CHAINSIZE, K); // Initialize chain variable to initial parameters for convinience
-  // std::vector<arma::umat> chain_clusters(CHAINSIZE, clusters);
-  // std::vector<arma::umat> chain_clusterSizes(CHAINSIZE, cluster_sizes);
-  // std::vector<arma::mat> chain_mu(CHAINSIZE, mu);
-  // std::vector<std::vector<arma::mat> > chain_sigma(CHAINSIZE, sigma);
-  
-  // for (arma::uword sweep = 0; sweep < CHAINSIZE; ++sweep) {
-  //   std::cout << sweep << " K\n" << chain_K[sweep] << std::endl
-  // 		<< sweep << " clusters\n" << chain_clusters[sweep] << std::endl
-  // 		<< sweep << " sizes\n" << chain_clusterSizes[sweep] << std::endl
-  // 		<< sweep << " mu\n" << chain_mu[sweep] << std::endl;
-  //   for (arma::uword i = 0; i < N; ++i) { 
-  // 	std::cout << sweep << " " << i << " sigma\n" << chain_sigma[sweep][i] << std::endl;
-  //   }
-  // }
-  
+  arma::uword BURN_IN = 0;
+  if (BURN_IN >= NUM_SWEEPS) {
+    BURN_IN = 0;
+  }
+  arma::uword CHAINSIZE = NUM_SWEEPS - BURN_IN;
+  std::vector<arma::uword> chain_K(CHAINSIZE, K); // Initialize chain variable to initial parameters for convinience
+  std::vector<arma::umat> chain_clusters(CHAINSIZE, clusters);
+  std::vector<arma::umat> chain_clusterSizes(CHAINSIZE, cluster_sizes);
+  std::vector<arma::mat> chain_mu(CHAINSIZE, mu);
+  std::vector<std::vector<arma::mat> > chain_sigma(CHAINSIZE, sigma);
+
 
   // START CHAIN
   std::cout << "Starting Algorithm with K = " << K << std::endl;
   for (arma::uword sweep = 0; sweep < NUM_SWEEPS; ++sweep) { 
     // shuffle indices
     shuffled_ids = shuffle(ids);
-    // std::cout << shuffled_ids << std::endl;
 
     // SAMPLE CLUSTERS
     for (arma::uword j = 0; j < N; ++j){
-      //      std::cout << "j = " << j << std::endl;
       arma::uword i = shuffled_ids(j);
       arma::mat x = X.row(i).t(); // current data point
       
       // Remove i's statistics and any empty clusters
       arma::uword c = clusters(i,0); // current cluster
       cluster_sizes(c,0) -= 1;
-      //std::cout << "old c = " << c << std::endl;
 
       if (cluster_sizes(c,0) == 0) { // remove empty cluster
       	cluster_sizes(c,0) = cluster_sizes(K-1,0); // move entries for K onto position c
@@ -172,39 +152,8 @@ int main()
 	--K;
       }
 
-      // quick test of logMvnPdf:
-      // arma::mat m_(2,1);
-      // arma::mat s_(2,2);
-      // arma::mat t_(2,1);
-      // m_ << 1 << arma::endr << 2;
-      // s_ << 3 << -0.2 << arma::endr << -0.2 << 1;
-      // t_ << -3 << arma::endr << -3;
-      // double lpdf = logMvnPdf(t_, m_, s_);
-      // std::cout << lpdf << std::endl; // śhould be -19.1034 (works)
-
-
-      
       // Find categorical distribution over clusters (tested)
       arma::mat logP(K+1, 1, arma::fill::zeros);
-      
-      // quick test of logInvWishPdf
-      // arma::mat si_(2,2), s_(2,2);
-      // double nu_ = 4;
-      // si_ << 1 << 0.5 << arma::endr << 0.5 << 4;
-      // s_ << 3 << -0.2 << arma::endr << -0.2 << 1;
-      // double lpdf = logInvWishPdf(si_, s_, nu_);
-      // std::cout << lpdf << std::endl; // should be -7.4399 (it is)
-
-      // quick test for logNormInvWishPdf
-      // arma::mat si_(2,2), s_(2,2);
-      // arma :: mat mu_(2,1), m_(2,1);
-      // double k_ = 0.5, nu_ = 4;
-      // si_ << 1 << 0.5 << arma::endr << 0.5 << 4;
-      // s_ << 3 << -0.2 << arma::endr << -0.2 << 1;
-      // mu_ << -3 << arma::endr << -3;
-      // m_ << 1 << arma::endr << 2;
-      // double lp = logNormInvWishPdf(mu_,si_,m_,k_,s_,nu_);
-      // std::cout << lp << std::endl; // should equal -15.2318 (it is)
       
       // p(existing clusters) (tested)
       for (arma::uword k = 0; k < K; ++k) {
@@ -213,10 +162,6 @@ int main()
 	logP(k,0) = log(cluster_sizes(k,0)) - log(N-1+alpha) + logMvnPdf(x,m_,s_);
       }
 
-      // p(new cluster): find partition function (tested)
-      // arma::mat dummy_mu(D, 1, arma::fill::zeros);
-      // arma::mat dummy_sigma(D, D, arma::fill::eye);
-      // double logPrior, logLklihd, logPstr, logPartition; 
       // posterior hyperparameters (tested)
       arma::mat m_1(D,1), S_1(D,D);
       double k_1, nu_1;
@@ -224,75 +169,26 @@ int main()
       nu_1 = nu_0 + 1;
       m_1 = (k_0*m_0 + x) / k_1;
       S_1 = S_0 + x * x.t() + k_0 * (m_0 * m_0.t()) - k_1 * (m_1 * m_1.t());
-      // std::cout << k_1 << std::endl
-      // 		<< nu_1 << std::endl
-      // 		<< m_1 << std::endl
-      // 		<< S_1 << std::endl;
       
-      // // partition = likelihood*prior/posterior (tested)
-      // // (perhaps a direct computation of the partition function would be better)
-      // logPrior = logNormInvWishPdf(dummy_mu, dummy_sigma, m_0, k_0, S_0, nu_0);
-      // logLklihd = logMvnPdf(x, dummy_mu, dummy_sigma);
-      // logPstr = logNormInvWishPdf(dummy_mu, dummy_sigma, m_1, k_1, S_1, nu_1);
-      // logPartition = logPrior + logLklihd - logPstr;      
-      // std::cout << "log  Prior = " << logPrior << std::endl
-      // 		<< "log Likelihood = " << logLklihd << std::endl
-      // 		<< "log Posterior = " << logPstr << std::endl
-      // 		<< "log Partition = " << logPartition << std::endl;
       
       // Computing partition directly
       double logS0,signS0,logS1,signS1;
       arma::log_det(logS0,signS0,S_0);
       arma::log_det(logS1,signS1,S_1);
-      /*std::cout << "log(det(S_0)) = " << logS0 << std::endl
-	<< "log(det(S_1)) = " << logS1 << std::endl;*/
+
       double term1 = 0.5*D*(log(k_0)-log(k_1));
       double term2 = -0.5*D*log(arma::datum::pi);
       double term3 = 0.5*(nu_0*logS0 - nu_1*logS1);
       double term4 = lgamma(0.5*nu_1);
       double term5 = -lgamma(0.5*(nu_1-D));
       double logPartition = term1+term2+term3+term4+term5;
-      /*double logPartition = 0.5*D*(log(k_0)-log(k_1)-log(arma::datum::pi)) \
-	/+0.5*(nu_0*logS0 - nu_1*logS1) + lgamma(0.5*nu_1) - lgamma(0.5*(nu_1-D));*/
-      
-      /*      std::cout << "term1 = " << term1 << std::endl
-		<< "term2 = " << term2 << std::endl
-		<< "term3 = " << term3 << std::endl
-		<< "term4 = " << term4 << std::endl
-		<< "term5 = " << term5 << std::endl;*/
-      
-      //std::cout << "logP = " << logPartition << std::endl;
 
       // p(new cluster): (tested)
       logP(K,0) = log(alpha) - log(N - 1 + alpha) + logPartition;
-      //      std::cout << "logP(new cluster) = " << logP(K,0) << std::endl;
-      //if(i == 49)
-      //assert(false);
-      // sample cluster for i
-      
-      
 
       arma::uword c_ = logCatRnd(logP);
       clusters(i,0) = c_;
       
-      //if (j % 10 == 0){
-      //std::cout << "New c = " << c_ << std::endl;
-      //std::cout << "logP = \n" << logP << std::endl;
-      //}
-      // quick test for mvnRnd
-      // arma::mat mu, si;
-      // mu << 1 << arma::endr << 2;
-      // si << 1 << 0.9 << arma::endr << 0.9 << 1;
-      // arma::mat m = mvnRnd(mu, si);
-      // std::cout << m << std::endl;
-
-      // quick test for invWishRnd
-      // double df = 4;
-      // arma::mat si(2,2);
-      // si << 1 << 1 << arma::endr << 1 << 1;
-      // arma::mat S = invWishRnd(si,df);
-      // std::cout << S << std::endl;
-
       if (c_ == K) {	// Sample parameters for any new-born clusters from posterior
 	cluster_sizes(K, 0) = 1;
 	arma::mat si_ = invWishRnd(S_1, nu_1);
@@ -305,19 +201,11 @@ int main()
       } else {
 	cluster_sizes(c_,0) += 1;
       }
-      // if (sweep == 0)
-      // 	std::cout << " K = " << K << std::endl;
-      // // if (j == N-1) {
-      // // 	std::cout << logP << std::endl;
-      // // 	std::cout << K << std::endl;
-      // // 	assert(false);
-      // // }
-      // std::cout << "K = " << K << "\n" << std::endl;
     }
     
     // sample CLUSTER PARAMETERS FROM POSTERIOR
     for (arma::uword k = 0; k < K; ++k) {
-      // std::cout << "k = " << k << std::endl;
+
       // cluster data
       arma::mat Xk = X.rows(find(clusters == k));
       arma::uword Nk = cluster_sizes(k,0);
@@ -347,25 +235,23 @@ int main()
     }
     std::cout << "Iteration " << sweep + 1 << "/" << NUM_SWEEPS<< " done. K = " << K << std::endl;
         
-    // // STORE CHAIN
-    // if (SAVE_CHAIN) {
-    //   if (sweep >= BURN_IN) { 
-    // 	chain_K[sweep - BURN_IN] = K;
-    // 	chain_clusters[sweep - BURN_IN] = clusters;
-    // 	chain_clusterSizes[sweep - BURN_IN] = cluster_sizes;
-    // 	chain_mu[sweep - BURN_IN] = mu;
-    // 	chain_sigma[sweep - BURN_IN] = sigma;
-    //   }
-    // }
+    // STORE CHAIN
+    if (sweep >= BURN_IN) { 
+      chain_K[sweep - BURN_IN] = K;
+    }
+
+    if (SAVE_CHAIN) {
+      if (sweep >= BURN_IN) { 
+    	chain_clusters[sweep - BURN_IN] = clusters;
+    	chain_clusterSizes[sweep - BURN_IN] = cluster_sizes;
+    	chain_mu[sweep - BURN_IN] = mu;
+    	chain_sigma[sweep - BURN_IN] = sigma;
+      }
+    }
 	
   }
   std::cout << "Final cluster sizes: " << std::endl
 	    << cluster_sizes.rows(0, K-1) << std::endl;
-
-
-
-
-
 
   
   // WRITE OUPUT DATA TO FILE
@@ -385,60 +271,65 @@ int main()
   char MuFile[] = "dpmMU.out";
   char SigmaFile[] = "dpmSIGMA.out";
   char IdxFile[] = "dpmIDX.out";
-  std::ofstream KFile("K.out");
+  std::ofstream chainKFile("chainK.out");
+  //std::ofstream KFile("K.out");
   
   MU.save(MuFile, arma::raw_ascii);
   SIGMA.save(SigmaFile, arma::raw_ascii);
   IDX.save(IdxFile, arma::raw_ascii);
-  KFile << "K = " << K << std::endl;
+  chainKFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
+	     << "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
+	     << "Burn-In: " << BURN_IN << std::endl
+	     << "Initial number of clusters: " << initial_K << std::endl
+	     << "Output: Number of cluster (K)\n" << std::endl; 
+  for (arma::uword sweep = 0; sweep < CHAINSIZE; ++sweep) {
+    chainKFile << "Sweep #" << BURN_IN + sweep + 1 << "\n" << chain_K[sweep] << std::endl;
+  }
+  // KFile << "K = " << K << std::endl; 
   
-  if (SAVE_CHAIN) {}
-  //   std::ofstream chainKFile("chainK.out");
-  //   std::ofstream chainClustersFile("chainClusters.out");
-  //   std::ofstream chainClusterSizesFile("chainClusterSizes.out");
-  //   std::ofstream chainMuFile("chainMu.out");
-  //   std::ofstream chainSigmaFile("chainSigma.out");
+
+
+  if (SAVE_CHAIN) {
+    std::ofstream chainClustersFile("chainClusters.out");
+    std::ofstream chainClusterSizesFile("chainClusterSizes.out");
+    std::ofstream chainMuFile("chainMu.out");
+    std::ofstream chainSigmaFile("chainSigma.out");
     
-  //   chainKFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
-  // 	       << "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
-  // 	       << "Burn-In: " << BURN_IN << std::endl
-  // 	       << "Initial number of clusters: " << initial_K << std::endl
-  // 	       << "Output: Number of cluster (K)\n" << std::endl; 
-  //   chainClustersFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
-  // 		      << "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
-  // 		      << "Burn-In: " << BURN_IN << std::endl
-  // 		      << "Initial number of clusters: " << initial_K << std::endl
-  // 		      << "Output: Cluster identities (clusters)\n" << std::endl; 
-  //   chainClusterSizesFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
-  // 			  << "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
-  // 			  << "Burn-In: " << BURN_IN << std::endl
-  // 			  << "Initial number of clusters: " << initial_K << std::endl
-  // 			  << "Output: Size of clusters (cluster_sizes)\n" << std::endl; 
-  //   chainMuFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
-  // 		<< "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
-  // 		<< "Burn-In: " << BURN_IN << std::endl
-  // 		<< "Initial number of clusters: " << initial_K << std::endl
-  // 		<< "Output: Samples for cluster mean parameters (mu. Note: means stored in rows)\n" << std::endl; 
-  //   chainSigmaFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
-  // 		   << "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
-  // 		   << "Burn-In " << BURN_IN << std::endl
-  // 		   << "Initial number of clusters: " << initial_K << std::endl
-  // 		   << "Output: Samples for cluster covariances (sigma)\n" << std::endl; 
+    chainClustersFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
+  		      << "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
+  		      << "Burn-In: " << BURN_IN << std::endl
+  		      << "Initial number of clusters: " << initial_K << std::endl
+  		      << "Output: Cluster identities (clusters)\n" << std::endl; 
+    chainClusterSizesFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
+  			  << "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
+  			  << "Burn-In: " << BURN_IN << std::endl
+  			  << "Initial number of clusters: " << initial_K << std::endl
+  			  << "Output: Size of clusters (cluster_sizes)\n" << std::endl; 
+    chainMuFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
+  		<< "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
+  		<< "Burn-In: " << BURN_IN << std::endl
+  		<< "Initial number of clusters: " << initial_K << std::endl
+  		<< "Output: Samples for cluster mean parameters (mu. Note: means stored in rows)\n" << std::endl; 
+    chainSigmaFile << "Dirichlet Process Mixture Model.\nInput: " << inputFile << std::endl
+  		   << "Number of iterations of Gibbs Sampler: " << NUM_SWEEPS << std::endl
+  		   << "Burn-In " << BURN_IN << std::endl
+  		   << "Initial number of clusters: " << initial_K << std::endl
+  		   << "Output: Samples for cluster covariances (sigma)\n" << std::endl; 
+    
 
-
-  //   for (arma::uword sweep = 0; sweep < CHAINSIZE; ++sweep) {
-  //     arma::uword K = chain_K[sweep];
-  //     chainKFile << "Sweep #" << BURN_IN + sweep + 1 << "\n" << chain_K[sweep] << std::endl;
-  //     chainClustersFile << "Sweep #" << BURN_IN + sweep + 1 << "\n" << chain_clusters[sweep]  << std::endl;
-  //     chainClusterSizesFile << "Sweep #" << BURN_IN + sweep + 1 << "\n" << chain_clusterSizes[sweep].rows(0, K - 1) << std::endl;
-  //     chainMuFile << "Sweep #" << BURN_IN + sweep + 1 << "\n" << chain_mu[sweep].rows(0, K - 1) << std::endl;
-  //     chainSigmaFile << "Sweep #" << BURN_IN + sweep + 1<< "\n";
-  //     for (arma::uword i = 0; i < K; ++i) { 
-  // 	chainSigmaFile << chain_sigma[sweep][i] << std::endl;
-  //     }
-  //     chainSigmaFile << std::endl;
-  //   }
-  // }
+    for (arma::uword sweep = 0; sweep < CHAINSIZE; ++sweep) {
+      arma::uword K = chain_K[sweep];
+      chainKFile << "Sweep #" << BURN_IN + sweep + 1 << "\n" << chain_K[sweep] << std::endl;
+      chainClustersFile << "Sweep #" << BURN_IN + sweep + 1 << "\n" << chain_clusters[sweep]  << std::endl;
+      chainClusterSizesFile << "Sweep #" << BURN_IN + sweep + 1 << "\n" << chain_clusterSizes[sweep].rows(0, K - 1) << std::endl;
+      chainMuFile << "Sweep #" << BURN_IN + sweep + 1 << "\n" << chain_mu[sweep].rows(0, K - 1) << std::endl;
+      chainSigmaFile << "Sweep #" << BURN_IN + sweep + 1<< "\n";
+      for (arma::uword i = 0; i < K; ++i) { 
+  	chainSigmaFile << chain_sigma[sweep][i] << std::endl;
+      }
+      chainSigmaFile << std::endl;
+    }
+  }
 
   return 0;
 }
