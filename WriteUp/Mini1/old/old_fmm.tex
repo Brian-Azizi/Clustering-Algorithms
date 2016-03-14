@@ -452,12 +452,6 @@ p(\bs x, z) = p(z)p(\bs x|\,z)
 \end{equation}
 Finally, to get the marginal ditribution of $\bs X$, we apply the sum rule of probability:
 \begin{equation}
-\label{eqn:sum-rule}
-p(\bs x) = \sum_z p(\bs x, z)
-\end{equation}
-
-The resulting model is then derived as follows
-\begin{equation}
 \label{eqn:mixture-derivation}
 \begin{split}
 p(\bs x) &= \sum_z p(\bs x, z)\\
@@ -466,28 +460,18 @@ p(\bs x) &= \sum_z p(\bs x, z)\\
 &= \sum_{k=1}^K \pi_k f_k(\bs x)
 \end{split}
 \end{equation}
-This is the same as the mixture model in (\ref{eqn:mixtures}).
+which is what we had in (\ref{eqn:mixtures}).
 
 Typically, the base distributions are chosen to belong to the same parametric family and differ only in the value of their parameter, so that $f_k(\bs x) = f(\bs x|\, \theta_k)$.
 In that case, the mixture distribution is given by
 \begin{equation}
-\label{eqn:mixture-model}
-p(\bs x|\,\bs\pi,\bs\theta) = \sum_{k=1}^K \pi_k f(\bs x|\,\theta_k)
+p(\bs x) = \sum_{k=1}^K \pi_k f(\bs x|\,\theta_k)
 \end{equation}
-where we have made the dependence on the parameters $\bs\pi$ and $\bs\theta = (\theta_1,\dots,\theta_K)$ explicit.
-
-
-
 
 \subsection{The EM algorithm}
 \label{sect:EM}
-Given our data set $S=\{\bs x^{(1)},\dots,\bs x^{(N)}\}$, how do we infer the parameters of our mixture model (\ref{eqn:mixture-model})?
-The standard inference method in frequentist statistics is \emph{maximum likelihood estimation}.
-The likelihood of the data is given by 
-\begin{equation}
-p()
-\end{equation}
 
+The EM algorithm is powerful variational technique that is very popular in latent variable models.
 In the general framework, we have a model for the joint distribution $p(x,z;\theta)$ (which is parameterized by $\theta$) but we only observe $x$.
 Given a training data set $S=\{x^{(1)},\dots,x^{(N)}\}$, we would like to find the parameters $\theta$ that maximise the log likelihood of the data
 \begin{equation}
@@ -497,8 +481,6 @@ l(\theta) &= \sum_{i=1}^N \log p(x^{(i)};\theta)\\
 &= \sum_{i=1}^N \log \sum_{z^{(i)}} p(x^{(i)},z^{(i)};\theta)
 \end{split}
 \end{equation}
-
-The EM algorithm is powerful variational technique that is very popular in latent variable models.
 The EM algorithm solves this problem in two steps.
 In the expectation step, it forms a function that is a lower bound to $l(\theta)$ and that is tight at the current value of $\theta$.
 In the maximization step, it finds $\theta$ that maximizes this lower bound.
