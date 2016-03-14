@@ -8,7 +8,7 @@ main.o : main.cpp
 	g++ -L/lsc/opt/armadillo-6.100/lib -I/lsc/opt/armadillo-6.100/include -c main.cpp -o main.o -O3 -pedantic -Wall -Wextra
 
 clean : 
-	rm main.o k_means.o kmeans
+	rm main.o k_means.o kmeans centroids.out idx.out
 
 dataClear :
 	rm ../data_files/toyclusters/centroids.out ../data_files/toyclusters/idx.out ../data_files/toyclusters/idx.dat ../data_files/toyclusters/plot.png

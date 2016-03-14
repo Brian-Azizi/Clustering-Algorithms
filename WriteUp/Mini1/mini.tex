@@ -26,8 +26,9 @@
 %% \usepackage{amsthm}
 %% The bm package lets you access bold symbols in math mode using the \boldsymbol command (useful to get bold greek letters).
 \usepackage{bm}
-%% The bbm package is contains the indicator function symbol \mathbbm{1}
+%% The bbm (and also dsfont) package is contains the indicator function symbol \mathbbm{1}
 \usepackage{bbm}
+\usepackage{dsfont}
 %% The amsmath package contains the split environment, letting you split equations into multiple lines.
 %% See "https://www.sharelatex.com/learn/Aligning_equations_with_amsmath " for an explanation.
 \usepackage{amsmath}
@@ -35,14 +36,31 @@
 %% \begin{linenumbers}, end it with \end{linenumbers}. Or switch it on
 %% for the whole article with \linenumbers after \end{frontmatter}.
 %% \usepackage{lineno}
-%% The algorithm defines the algorithm floating environment and the algpseudocode package is useful for constructing Pseudo code.
+%% The algorithm package defines the algorithm floating environment and the algpseudocode package is useful for constructing Pseudo code.
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+%% For making algorithms float
+\usepackage{float}
+\newfloat{algorithm}{t}{lop}
+%% For drawing pictures inside latex
+\usepackage{tikz}
+%% For setting the 'DRAFT' watermark
+%\usepackage{draftwatermark}
+%\SetWatermarkText{DRAFT}
+%\SetWatermarkScale{1}
+
 %% Declaring \argmin and \argmax operators:
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
 %% Declare trace operator \Tr:
 \DeclareMathOperator*{\Tr}{Tr}
+%% Declare pdf functions
+\DeclareMathOperator*{\Dir}{Dir}
+\DeclareMathOperator*{\Cat}{Cat}
+%% shorthand for \boldsymbol
+\let\bs\boldsymbol
+%% Indicator symbol
+\DeclareMathOperator*{\id}{\mathds{1}}
 %% natbib.sty is loaded by default. However, natbib options can be
 %% provided with \biboptions{...} command. Following options are
 %% valid:
@@ -92,7 +110,7 @@
 %% \address{Address\fnref{label3}}
 %% \fntext[label3]{}
 
-\title{Mini Project: Implementation and comparison of the Gaussian Mixture model, the K-means algorithm and the Dirichlet Process}
+\title{Implementation and Comparison of the $K$-Means algorithm and the Gaussian Mixture Model}
 
 %% use optional labels to link authors explicitly to addresses:
 %% \author[label1,label2]{<author name>}
@@ -105,7 +123,7 @@
   Avenue, Cambridge. CB3 0HE}
 
 \begin{abstract}
-Abstract of the mini project. As part of the written assignment for the MPhil in Scientific Computing, I have implemented three clustering algorithms in the C++ programming language, the k-means algorithm, the Gaussian mixture model and the Dirichlet Process mixture model. Subsequently, the algorithms will be compared and texted on a number of data sets.
+Abstract.
 \end{abstract}
 
 \end{frontmatter}
@@ -121,59 +139,149 @@ Abstract of the mini project. As part of the written assignment for the MPhil in
 The goal of \emph{clustering} is to discover structure in the data by identifying groups of similar data points. 
 Clustering has found applications in biology (gene clustering), market research (market segmentation), grouping similar news (news clustering, eg Google News) and image segmentation (which has applications in medicine).
 
-We begin by introducing a very simple clustering algorithm: K-Means. 
+We begin by introducing a very simple clustering algorithm: $K$-Means. 
 Then we make a small digression to discuss the related problem of density estimation (and outlier detection) which will lead to the Mixture of Gaussians model.
-Finally, we take a Bayesian non-parametric approach and discuss the Dirichlet Process Mixture Model.
-
-Throughout this report, we assume we have a dataset $\{\boldsymbol x^{(i)}\}_{i=1}^N$ consisting of $N$ observations of a random variable $\boldsymbol x$ living in $D$-dimensional Euclidean space, $\mathbb{R}^D$.
- 
 
 
+\section{$K$-Means Clustering}
+In this section we introduce the \emph{$K$-Means algorithm} \cite{lloyd1982}.
+It is one of the simplest and most intuitive approaches to clustering.
+The algorithm requires only a single parameter to be set, namely the number of desired clusters $K$. 
+It outputs a \emph{flat} and \emph{non-probabilistic} clustering of the data.
 
+We start off by giving a general description of the method and stating the algorithm.
+Following that, we look at its convergence properties and derive the formulas used in the algorithm.
+We then discuss model selection in the context of $K$-means clustering and demonstrate the algorithm in a simple setting.
+We finish the section with a brief discussion of extensions and generalizations of $K$-means.
 
-\section{K-Means Clustering}
-\emph{K-Means} is the simplest clustering algorithm.
-We assume there exists $K$ clusters, and we introduce $K$ \emph{cluster centroids} $\boldsymbol \mu_k \in \mathbb{R}^D$.
-These centroids can be thought of as representatives of the individual clusters (or as their centres, as we will soon see).
-We denote the label, or \emph{cluster assignment}, of the $i$th training sample by $c^{(i)} \in \{1, \dots, K\}$. 
+\subsection{The $K$-Means algorithm}
+Suppose we have data set $S = \{\bs x^{(1)},\dots,\bs x^{(N)}\}$ consisting of $N$ observations of the $D$ dimensional random variable $\bs X \in \mathbb{R}^D$.
+We would like to partition the data into $K$ sets, where each set corresponds to a cluster.
+For now, we assume that $K$ is given. In section \ref{sect:kmeans-ms}, we will discuss some common strategies for how $K$ can be set.
 
-\subsection{The K-Means algorithm}
+Each cluster $k$ is represented be a \emph{cluster centroids} $\bs\mu_k \in \mathbb{R}^D$.
+We also need to introduce a latent variable $z^{(i)}$ for each data point $x^{(i)}$ that contains the \emph{cluster assignment} for sample $i$.
+If $z^{(i)} = k$, then $x^{(i)}$ belongs to cluster $k$.
 
-The K-Means algorithm begins with an initial guess for the $\boldsymbol \mu_k$. 
-We then repeat the following two steps until convergence.
-First, we assign each data point to the nearest cluster centroid.
-Second, we update each cluster centroid to be the mean of all the points assigned to them.
-Algorithm \ref{alg:kmeans} contains the pseudo-code.
+The $K$-Means algorithm starts by initializing the centroids $\boldsymbol \mu_k$.
+Typically, this is done by randomly selecting $K$ distinct data points as the initial values for the centroid variables.
+
+The algorithm then repeats the following two steps until convergence:
+\begin{enumerate}
+\item Assign each sample $x^{(i)}$ to the cluster represented by the centroid $\bs\mu_k$ that is closest to it.
+\item Assign each cluster centroid $\bs\mu_k$ to the mean of all samples that currently belong to cluster $k$.
+\end{enumerate}
+The algorithm has converged once there are no more changes.
+We have summarized the $K$-means algorithm in algorithm \ref{alg:kmeans}.
 
 \begin{algorithm}
-\caption{K-Means algorithm}
+\caption{$K$-Means algorithm}
 \label{alg:kmeans}
 \begin{algorithmic}[1]
-\Procedure{K-Means}{$X,K$}
-\State{Randomly initialize $K$ cluster centroids in $\mathbb{R}^D$}
+\State Initialize cluster centroids $\bs\mu_1,\dots,\bs\mu_K$
+\Statex
 \Repeat
-\For{$i = 1:N$}\Comment
-\State{$c^{(i)} = \argmin_k ||\boldsymbol{x}_i - \boldsymbol{k}_k||^2$}
+\For{$i = 1,\dots,N$}
+\State $z^{(i)} := \argmin_k ||\bs x^{(i)} - \bs\mu_k||^2$
 \EndFor
-\For{$k = 1:K$}
-\State{$N_k = \sum_{i=1}^N \mathbbm{1}\{c^{(i)} = k \}$}
-\State{$\boldsymbol{\mu}_k = \sum_{i:c^{(i)}=k} \boldsymbol{x}^{(i)} / N_k$}
+\Statex
+\For{$k = 1,\dots,K$}
+\State $\bs\mu_k := \frac{\sum_{i=1}^N \id \{z^{(i)}\,=\,k\}\, \bs x^{(i)}}{\sum_{i=1}^N \id\{z^{(i)}\,=\,k\}}$
 \EndFor
-\Until{Convergence}\Comment{No more changes}
-\EndProcedure \\
-\Return{$c^{(1)}, \dots, c^{(N)}, \boldsymbol{\mu}_1, \dots, \boldsymbol{\mu}_K $}
+\Until{Convergence}
+\Statex\State\Return{$z^{(1)}, \dots, z^{(N)}, \bs\mu_1, \dots, \bs\mu_K$}
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Convergence of K-Means}
 
-In order to show convergence, we can cast the K-Means problem into an optimization problem. Define the \emph{distortion function} 
+\subsection{Derivation and Convergence of $K$-Means}
+\label{sect:kmeans-derivation}
+In order to prove convergence of $K$-means, we define the \emph{distortion function} 
 \begin{equation}
-J(\boldsymbol c, \boldsymbol \mu) = \sum_{i=1}^N ||\boldsymbol x^{(i)} - \boldsymbol \mu_{c^{(i)}}||^2
 \label{eqn:distortion}
+J(z^{(1)},\dots,z^{(N)},\bs\mu_1,\dots,\bs\mu_K) = \sum_{i=1}^N \sum_{k=1}^K \id\{z^{(i)}=k\}||\bs x^{(i)} - \bs \mu_k||^2
 \end{equation}
-The K-Means problem is then equivalent to minimizing the distortion function and the K-Means algorithm corresponds to performing coordinate descent on $J(\boldsymbol c, \boldsymbol \mu)$.
-Thus, the algorithm is guaranteed to converge. 
+The objective of $K$-Means clustering is equivalent to finding the parameters $z^{(i)} \in \{1,\dots,K\}$ and $\bs\mu_k\in\mathbb{R}^D$, for all $i$ and $k$, that minimize the distortion function $J$.
+
+The $K$-means is obtained by applying the \emph{coordinate descent algorithm} to minimize the distortion function.
+Coordinate descent is a simple optimization algorithm that can be used to find a local minimum of a multivariate function $F(\bs y)$.
+It starts off by forming an initial guess $\bs y^{0}$ for the minimum $\bs y^*$. 
+It then repeatedly cycles through each coordinate direction $y_j$ and minimizes $F$ along that direction.
+
+In the case of the distortion function $J$, we only need to initialize the cluster centroids since the cluster assignments are independent of one another (the optimal value for $z^{(i)}$ tells us nothing about what $z^{(j)}$ should be).
+We then minimize $J$ with respect to each $z^{(i)}$ keeping all other variables constant. 
+If $K$ and $N$ are not too large, we can do this optimization by individually trying each value for $z^{(i)}$, i.e. by brute force.
+The optimal value for $z^{(i)}$ is given by
+\begin{equation}
+\label{eqn:kmeans-E}
+z^{(i)} = \argmin_k ||\bs x^{(i)} - \bs\mu_k||^2
+\end{equation}
+giving us the first inner loop of the $K$-means algorithm (lines 3-5 in algorithm \ref{alg:kmeans}).
+
+Next, we minimize $J$ with respect to each cluster centroid $\bs\mu_k$ keeping all other variables constant.
+We can do so by setting the gradient of $J$ with respect to $\bs\mu_k$ to zero:
+\begin{equation}
+\label{eqn:kmeans-M}
+\begin{split}
+\nabla_{\bs\mu_k} J &= \nabla_{\bs\mu_k} \sum_{i=1}^N\id\{z^{(i)}=k\}(\bs x^{(i)}-\bs\mu_k)^T(\bs x^{(i)}-\bs\mu_k)\\
+&= -2 \sum_{i=1}^N\id\{z^{(i)}=k\}(\bs x^{(i)}-\bs\mu_k) = 0\\
+\Rightarrow \bs\mu_k &= \frac{\sum_{i=1}^N\id\{z^{(i)} = k\}\,\bs x^{(i)}}{\sum_{i=1}^N\id\{z^{(i)}=k\}}
+\end{split}
+\end{equation}
+This gives us the second inner loop of the algorithm (lines 6-8 in algorithm \ref{alg:kmeans}).
+Furthermore, as already mentioned, (\ref{eqn:kmeans-M}) corresponds to setting $\bs \mu_k$ to the means of all samples $\bs x^{(i)}$ which currently assigned to cluster $k$.
+\footnote{It is possible that $\sum_{i=1}^N\id\{z^{(i)}=k\} = 0$.
+I.e. there is a possibility that a cluster becomes empty in the course of the algorithm.
+If this happens, we can simply re-initialize the corresponding cluster centroid.
+However, this may be an indication that we have set $K$ too large.}
+
+One property of the coordinate descent algorithm is that each iteration is a (weak) improvement on the previous one.
+This can be easily seen by noting that no update can make us worse off. 
+So if the approximation to the solution at iteration $j$ is $\bs y^{(j)}$, then $F(\bs y^{(j)}) \geq F(\bs y^{(j+1)})$.
+Hence, as long as the objective function is bounded below, the algorithm is guaranteed to converge to a local minimum.
+Using the fact that $J \geq 0$, we have thus established convergence of the $K$-means algorithm.
+
+Note, however, that we are only guaranteed to converge to a \emph{local} minimum.
+In practice, this problem is dealt with by performing multiple runs of the entire $K$-Means algorithm.
+We have to make sure that each run uses a different set of initial values for the the cluster centroids since, given an initialization, the $K$-means algorithm is completely deterministic.
+We also need to record the final value of the distortion function $J$ after each run.
+The overall output is then chosen to be the solution corresponding to the run for which the final value of $J$ was smallest.
+Although this method does not guarantee convergence to the global optimum either, the resulting outcome is usually accepted to be at least ``good enough".
+
+Convergence of the $K$-means algorithm was extensively studied by \cite{macqueen1967}.
+
+
+
+\subsection{Model selection for $K$-Means Clustering}
+\label{sect:kmeans-ms}
+The only user-set parameter in the $K$-means algorithm is the number of clusters.
+Therefore, model selection for $K$-means amounts to selecting the optimal value for $K$.
+
+The standard model selection tool for $K$-means clustering is the so-called ``elbow method" (also referred to as the ``kink method").
+We run the $K$-Means algorithm for a range of different values of $K$, say for $1 \leq K \leq K_{max}$, where $K_{max}$ is some preset maximum value for $K$.
+For each run, the optimal value of the distortion function, $J^*_K$, is saved.
+If necessary, perform multiple random initializations for each $K$ to avoid poor local optima.
+Finally, we plot $J_K^*$ against $K$.
+
+In some cases, it is possible to identify a distinct ``kink" in the curve at some $K^*$ (i.e. the curve has a noticable ``elbow").
+If that is the case, it would be a reasonable choice to set $K$ to the value at which the kink occurs.
+
+The intuition is that, if there is some true number of clusters $K^*$, we would expect a steep slope in the elbow curve for $K < K^*$.
+If $K < K^*$, we are putting several clusters into the same group. 
+Splitting the group into its constituent clusters should have a large effect on the distortion function.
+
+If $K > K^*$, we have broken individual clusters into smaller groups.
+Thus, we would expect only a small reduction in the distortion compared to $K^*$.
+
+In practical applications, the optimal value for $K$ is often ambiguous.
+In fact, a common behaviour of real-world data is that the number of clusters grows with the size of the data set.
+
+Because of this, $K$ is usually chosen manually in practice.
+In some applications, we domain-specific knowledge may give provide a reasonable value for $K$.
+
+\subsection{Implementaion Details and Demonstration}
+
+
 Figure \ref{fig:kmeans1} shows a result from running K-Means to convergence with $K = 3$.
 \begin{figure}
 \centering
@@ -190,32 +298,14 @@ Figure \ref{fig:kmeans2} is the same as figure \ref{fig:kmeans1} but with a diff
 \caption{Local optimum of K-Means algorithm ($K=3$).}
 \label{fig:kmeans2}
 \end{figure}
-In practice, we deal with this problem by performing several run of the entire K-Means algorithm, each with different initializations of the cluster centroids, and then choosing the output for which the distortion measure is smallest.
 
+\subsection{Extensions and Generalizations of $K$-Means}
 We have described the K-Means algorithm using the squared Euclidean metric as a dissimilarity measure between data points.
 It is possible to formulate the algorithm using a general dissimilarity metric $V(\boldsymbol x, \boldsymbol x')$.
 In that case, the distortion function takes the form $J(\boldsymbol c, \boldsymbol \mu) = \sum_{i=1}^N V(\boldsymbol x^{(i)}, \boldsymbol \mu_{c^{(i)}})$.
 The algorithm is then known as \emph{K-Medoids}.
 
-\subsection{Model selection for K-Means}
-The K-means model has only one hyperparameter, namely the number of clusters $K$.
-In practice, $K$ is often chosen manually.
-In some applications, we have prior knowledge about the number of clusters.
-
-There exist some model selection tools, most notably the ``elbow method" (also known as the ``kink method").
-We run the K-Means algorithm for $1 \leq K \leq K_{max}$ (where $K_{max}$ is some user-defined maximum value for $K$).
-For each run, we save the final value of the distortion function (performing multiple random initializations to ensure a good optimum if necessary).
-Finally, we plot the optimal values of the distortion function against $K$.
-Sometimes, it is possible to identify a distinct ``kink" (i.e. the ``elbow") in the curve.
-In that case, we set $K$ to the value at which the kink occurs.
-The intuition is that, if there is some true number of clusters $K^*$, we would expect a steep slope in the elbow curve for $K < K^*$.
-If we set $K > K^*$, we are splitting groups of data points that belong to the same cluster. Thus, we would expect only a small reduction in the distortion compared to $K^*$.
-
-It is possible for a cluster to become empty during the algorithm.
-In that case, we can either remove it or randomly reinitialize the centroid.
-
 For more information on K-Means clustering, see \cite{Bishop}.
-
 
 \section{The Gaussian Mixture Model}
 The Gaussian mixture model (GMM) (also known as mixtures of Gaussians) is the most widely used mixture model.
@@ -451,7 +541,7 @@ In the Gaussian mixture model, for the E-step we have
 \begin{equation}
 \label{eqn:gmmE}
 \begin{split}
-Q_i(z^{(i)} = k) &= p(z^{(i)} = k\,|\,\boldsymbol x^{(i)}; \boldsymbol \pi, \boldsymbol \mu \boldsymbol \Sigma)\\
+Q_i(z^{(i)} = k) &= p(z^{(i)} = k\,|\,\boldsymbol x^{(i)}; \boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma)\\
 &= p(z^{(i)}=k\,|\,\boldsymbol x^{(i)}; \boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma)\\
 &= \frac{p(z^{(i)}=k;\boldsymbol \pi)p(\boldsymbol x^{(i)}\,|\,z^{(i)}=k;\boldsymbol \mu, \boldsymbol \Sigma)}
 {\sum_{j=1}^K p(z^{(i)}=j;\boldsymbol \pi)p(\boldsymbol x^{(i)}\,|\,z^{(i)}=j;\boldsymbol \mu, \boldsymbol \Sigma)}\\
@@ -516,10 +606,36 @@ Thus,
 \end{equation}
 
 \subsection{Model Selection in the Gaussian mixture model}
-probabilistic approach.
-local optima.
+It is possible for the EM algorithm to get stuck in local optima.
+The approach of dealing with this problem is analogous to the one used in the K-Means algorithm:
+We perform multiple runs of the EM algorithm with different random initializations of the GMM parameters. We then pick the result for which the log likelihood was greatest.
+
+In order to choose $K$, we may again employ the ``elbow method'', by plotting the negative log likelihood against $K$.
+Another popular approach is the use information theoretic model selection criteria such as the \emph{Akaike Information Criterion (AIC)}, the \emph{Bayesian Information Criterion (BIC)} or the \emph{Kullbeck-Leibler Information Criterion (KLIC)}.
+It is also possible to embed the GMM in a Bayesian framework by putting prior probabilities on our model parameters.
+For instance, we could put a Gaussian-Inverse-Wishart prior on the cluster means and covariances and a Dirichlet prior on the mixing coefficients.
+These priors are conjugate to our likelihood function and thus lead to fast computation of the posterior probabilities of the parameters. \emph{(CHECK THIS)}.
+\emph{COMMENT: how is this used for model selection?}
 
 \subsection{KMeans as limit of GMM}
+We can derive the K-Means algorithm as a special case of the EM algorithm for the Gaussian Mixture Model.
+Let is fix $\pi_k = 1/K$ and $\boldsymbol \Sigma_k = \sigma^2 \boldsymbol I_D$ for all values of $k$.
+Further, let us approximate the responsibilities by delta functions
+\begin{equation}
+\label{eqn:gmmdelta}
+\gamma_k^{(i)} = \mathbbm{1}\{z^{(i)} = k^*\}
+\end{equation}
+where
+\begin{equation}
+k^* = \argmax_k p(z^{(i)} = k\,|\,\boldsymbol x^{(i)},\boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma)
+\end{equation}
+is the MAP estimate of $z^{(i)}$.
+Due to the spherical covariance matrix, $k^*$ will be simply equal to the identity of the currently closest cluster centroid to $\boldsymbol x^{(i)}$. This completes the E-step.
+
+In the M-Step, we only need to update the cluster means $\boldsymbol \mu_k$.
+Using our approximations for $\gamma_k^{(i)}$, the GMM update formula for $\boldsymbol \mu_k$ reduces to the one we used in the K-Means algorithm, i.e. the empirical mean of all data points currently assigned to cluster $k$.
+
+For more info, see \cite{Bishop} and \cite{Murphy}.
 
 
 \section*{Acknowledgements}
@@ -530,8 +646,8 @@ and the effects of caffine on my ability to produce this report on time.
 %% appendix sections are then done as normal sections
 \appendix
 
-\section{On the Derivation of the Quadratic Formula}
-\label{app:quad}
+\section{Derivation of GMM with known cluster identities}
+\label{app:gmm}
 
 %% References
 %%

@@ -142,6 +142,7 @@ arma::Mat<double> runkMeans(const arma::Mat<double>& X, arma::Col<arma::uword>& 
   arma::Mat<double> previous_centroids = centroids;
   double currentCost = -1;
   double cost = 0;
+  double epsilon = 0.0000000001;
 
   // Run K-Means
   for (arma::uword i = 0; i != max_iter; ++i) {
@@ -157,7 +158,7 @@ arma::Mat<double> runkMeans(const arma::Mat<double>& X, arma::Col<arma::uword>& 
     // output progress
     cost = kMeansCost(X, centroids, idx);
     std::cout << "Cost: " << cost << std::endl;
-    if ( i > 0 && fabs(cost - currentCost) < 0.000001*fabs(currentCost) ) {
+    if ( i > 0 && fabs(cost - currentCost) < epsilon*fabs(currentCost) ) {
       std::cout << "Converged after " << i + 1 << " iterations." << std::endl << std::endl;
       break;
     }

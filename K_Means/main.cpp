@@ -1,4 +1,5 @@
 #include <armadillo>
+#include <cassert>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
@@ -29,10 +30,7 @@ int main(int argc, char **argv)
 
   // A) Toycluster Data
   char filename[] = "../data_files/toyclusters/toyclusters.dat";
-  X.load(filename);
-  const arma::uword N = X.n_rows; // N = #examples
-  const arma::uword D = X.n_cols; // D = #features
-    
+  
   /*// B) Image Data: Lenna (256x256 pixels unrolled into rows, RGB values in columns)
   X.load("data_files/lenna/lenna_256x256x3.dat");
   arma::Col<arma::uword> imSize(3);
@@ -48,13 +46,22 @@ int main(int argc, char **argv)
   const arma::uword N = imSize(0) * imSize(1);
   const arma::uword D = imSize(2);
   */
-  /*
+  
+  // D) MNIST
+  //char filename[] = "../data_files/MNIST/MNISTreduced.dat";
+
+  
+  X.load(filename);
+  const arma::uword N = X.n_rows; // N = #examples
+  const arma::uword D = X.n_cols; // D = #features
+  //std::cout << N << std::endl << D << std::endl;
+
   // DEBUG
   if (N == X.n_rows)
     std::cout << "So far so good" << std::endl;
   else
     std::cout << "Something is wrong. N = " << N << " and n_rows = " << X.n_rows << std::endl;
-  */
+  
   /* Declare centroids and index vector containing cluster labels */
   arma::Mat<double> centroids(K, D);
   arma::Mat<double> bestCentroids(K,D);
@@ -64,8 +71,8 @@ int main(int argc, char **argv)
   double currentCost, bestCost;
 
   /* Set maximum number of iterations */
-  arma::uword max_iter = 20;
-  arma::uword num_runs = 20;
+  arma::uword max_iter = 200;
+  arma::uword num_runs = 15;
 
   int seed = time(NULL);
   srand(seed);
@@ -98,12 +105,13 @@ int main(int argc, char **argv)
   */
 
   // A) Save toycluster output
-  char centroidsFile[] = "../data_files/toyclusters/centroids.out";
-  char idxFile[] = "../data_files/toyclusters/idx.out";
+  //char centroidsFile[] = "../data_files/toyclusters/centroids.out";
+  //char idxFile[] = "../data_files/toyclusters/idx.out";
+  char centroidsFile[] = "centroids.out";
+  char idxFile[] = "idx.out";
   bestCentroids.save(centroidsFile, arma::raw_ascii);
   bestIdx.save(idxFile, arma::raw_ascii);
   
-
   /*// B) Compress lenna into K colours
   arma::Mat<double> X_compressed(X.n_rows, X.n_cols);
   for (arma::uword k = 0; k != K; ++k) {
@@ -168,5 +176,13 @@ int main(int argc, char **argv)
   //  centroids.save("data_files/fiona/centroids.out", arma::raw_ascii);
   //  idx.save("data_files/fiona/idx.out", arma::raw_ascii);
   */
+
+  // Save MNIST
+  /*char centroidsFile[] = "./centroids.out";
+  char idxFile[] = "./idx.out";
+  bestCentroids.save(centroidsFile, arma::raw_ascii);
+  bestIdx.save(idxFile, arma::raw_ascii);
+  */
+
   return 0;
 }
