@@ -1,4 +1,4 @@
-X = mini
+X = fmm
 
 mini.pdf : $(X).tex references.bib
 	pdflatex $(X).tex

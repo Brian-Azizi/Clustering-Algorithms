@@ -143,6 +143,8 @@ We begin by introducing a very simple clustering algorithm: $K$-Means.
 Then we make a small digression to discuss the related problem of density estimation (and outlier detection) which will lead to the Mixture of Gaussians model.
 
 
+
+
 \section{$K$-Means Clustering}
 In this section we introduce the \emph{$K$-Means algorithm} \cite{lloyd1982}.
 It is one of the simplest and most intuitive approaches to clustering.
@@ -154,25 +156,12 @@ Following that, we look at its convergence properties and derive the formulas us
 We then discuss model selection in the context of $K$-means clustering and demonstrate the algorithm in a simple setting.
 We finish the section with a brief discussion of extensions and generalizations of $K$-means.
 
+
+
 \subsection{The $K$-Means algorithm}
 Suppose we have data set $S = \{\bs x^{(1)},\dots,\bs x^{(N)}\}$ consisting of $N$ observations of the $D$ dimensional random variable $\bs X \in \mathbb{R}^D$.
 We would like to partition the data into $K$ sets, where each set corresponds to a cluster.
 For now, we assume that $K$ is given. In section \ref{sect:kmeans-ms}, we will discuss some common strategies for how $K$ can be set.
-
-Each cluster $k$ is represented be a \emph{cluster centroids} $\bs\mu_k \in \mathbb{R}^D$.
-We also need to introduce a latent variable $z^{(i)}$ for each data point $x^{(i)}$ that contains the \emph{cluster assignment} for sample $i$.
-If $z^{(i)} = k$, then $x^{(i)}$ belongs to cluster $k$.
-
-The $K$-Means algorithm starts by initializing the centroids $\boldsymbol \mu_k$.
-Typically, this is done by randomly selecting $K$ distinct data points as the initial values for the centroid variables.
-
-The algorithm then repeats the following two steps until convergence:
-\begin{enumerate}
-\item Assign each sample $x^{(i)}$ to the cluster represented by the centroid $\bs\mu_k$ that is closest to it.
-\item Assign each cluster centroid $\bs\mu_k$ to the mean of all samples that currently belong to cluster $k$.
-\end{enumerate}
-The algorithm has converged once there are no more changes.
-We have summarized the $K$-means algorithm in algorithm \ref{alg:kmeans}.
 
 \begin{algorithm}
 \caption{$K$-Means algorithm}
@@ -193,13 +182,41 @@ We have summarized the $K$-means algorithm in algorithm \ref{alg:kmeans}.
 \end{algorithmic}
 \end{algorithm}
 
+Each cluster $k$ is represented be a \emph{cluster centroids} $\bs\mu_k \in \mathbb{R}^D$.
+We also need to introduce a latent variable $z^{(i)}$ for each data point $x^{(i)}$ that contains the \emph{cluster assignment} for sample $i$.
+If $z^{(i)} = k$, then $x^{(i)}$ belongs to cluster $k$.
+
+The $K$-Means algorithm starts by initializing the centroids $\boldsymbol \mu_k$.
+Typically, this is done by randomly selecting $K$ distinct data points as the initial values for the centroid variables.
+
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth,height=3.9in]{prog.png}
+\caption{Illustration of the $K$-means algorithm on a 2d data set with $K=3$.
+Cluster assignment is shown by colour. The algorithm converges in 6 iterations}
+\label{fig:kmeans-prog}
+\end{figure*}
+
+The algorithm then repeats the following two steps until convergence:
+\begin{enumerate}
+\item Assign each sample $x^{(i)}$ to the cluster represented by the centroid $\bs\mu_k$ that is closest to it.
+\item Assign each cluster centroid $\bs\mu_k$ to the mean of all samples that currently belong to cluster $k$.
+\end{enumerate}
+The algorithm has converged once there are no more changes.
+We have summarized the $K$-means algorithm in algorithm \ref{alg:kmeans}.
+
+Figure \ref{fig:kmeans-prog} illustrates the algorithm with $K=3$ on a 2d data set consisting of 300 data points.
+We chose a poor initialization for the cluster centroids so that we could show several iterations. 
+With a better initialization, as suggested above, convergence would have been faster.
+
+
 
 \subsection{Derivation and Convergence of $K$-Means}
 \label{sect:kmeans-derivation}
 In order to prove convergence of $K$-means, we define the \emph{distortion function} 
 \begin{equation}
 \label{eqn:distortion}
-J(z^{(1)},\dots,z^{(N)},\bs\mu_1,\dots,\bs\mu_K) = \sum_{i=1}^N \sum_{k=1}^K \id\{z^{(i)}=k\}||\bs x^{(i)} - \bs \mu_k||^2
+J(z^{(1)},\dots,z^{(N)},\bs\mu_1,\dots,\bs\mu_K) = \sum_{i=1}^N \sum_{k=1}^K \id\{z^{(i)}=k\}\,||\bs x^{(i)} - \bs \mu_k||^2
 \end{equation}
 The objective of $K$-Means clustering is equivalent to finding the parameters $z^{(i)} \in \{1,\dots,K\}$ and $\bs\mu_k\in\mathbb{R}^D$, for all $i$ and $k$, that minimize the distortion function $J$.
 
@@ -221,17 +238,21 @@ giving us the first inner loop of the $K$-means algorithm (lines 3-5 in algorith
 Next, we minimize $J$ with respect to each cluster centroid $\bs\mu_k$ keeping all other variables constant.
 We can do so by setting the gradient of $J$ with respect to $\bs\mu_k$ to zero:
 \begin{equation}
-\label{eqn:kmeans-M}
+\label{eqn:kmeans-M0}
 \begin{split}
 \nabla_{\bs\mu_k} J &= \nabla_{\bs\mu_k} \sum_{i=1}^N\id\{z^{(i)}=k\}(\bs x^{(i)}-\bs\mu_k)^T(\bs x^{(i)}-\bs\mu_k)\\
 &= -2 \sum_{i=1}^N\id\{z^{(i)}=k\}(\bs x^{(i)}-\bs\mu_k) = 0\\
-\Rightarrow \bs\mu_k &= \frac{\sum_{i=1}^N\id\{z^{(i)} = k\}\,\bs x^{(i)}}{\sum_{i=1}^N\id\{z^{(i)}=k\}}
 \end{split}
 \end{equation}
-This gives us the second inner loop of the algorithm (lines 6-8 in algorithm \ref{alg:kmeans}).
+Rearranging this equation gives us
+\begin{equation}
+\label{eqn:kmeans-M}
+\Rightarrow \bs\mu_k = \frac{\sum_{i=1}^N\id\{z^{(i)} = k\}\,\bs x^{(i)}}{\sum_{i=1}^N\id\{z^{(i)}=k}
+\end{equation}
+This is the second inner loop of the algorithm (lines 6-8 in algorithm \ref{alg:kmeans}).
 Furthermore, as already mentioned, (\ref{eqn:kmeans-M}) corresponds to setting $\bs \mu_k$ to the means of all samples $\bs x^{(i)}$ which currently assigned to cluster $k$.
 \footnote{It is possible that $\sum_{i=1}^N\id\{z^{(i)}=k\} = 0$.
-I.e. there is a possibility that a cluster becomes empty in the course of the algorithm.
+In other words, there is a possibility that a cluster becomes empty in the course of the algorithm.
 If this happens, we can simply re-initialize the corresponding cluster centroid.
 However, this may be an indication that we have set $K$ too large.}
 
@@ -242,6 +263,10 @@ Hence, as long as the objective function is bounded below, the algorithm is guar
 Using the fact that $J \geq 0$, we have thus established convergence of the $K$-means algorithm.
 
 Note, however, that we are only guaranteed to converge to a \emph{local} minimum.
+Figure \ref{fog:kmeans-local} shows an example of a local optimum of the $K$-means algorithm applied to the same data set as in Figure \ref{fig:kmeans-prog}.
+
+In two dimensions, we are able to visualize the data and might be able to identify a local solution simply by looking at the outcome. 
+This is more difficult to do in higher dimensions.
 In practice, this problem is dealt with by performing multiple runs of the entire $K$-Means algorithm.
 We have to make sure that each run uses a different set of initial values for the the cluster centroids since, given an initialization, the $K$-means algorithm is completely deterministic.
 We also need to record the final value of the distortion function $J$ after each run.
@@ -250,10 +275,27 @@ Although this method does not guarantee convergence to the global optimum either
 
 Convergence of the $K$-means algorithm was extensively studied by \cite{macqueen1967}.
 
+\begin{figure}
+\centering
+\includegraphics[width=3in]{local.png}
+\caption{Local optimum of the K-Means algorithm applied to the data set from Figure \ref{fig:kmeans-prog} with $K=3$.}
+\label{fig:kmeans-local}
+\end{figure}
+
 
 
 \subsection{Model selection for $K$-Means Clustering}
 \label{sect:kmeans-ms}
+
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth,height=3in]{elbow.png}
+\caption{Illustration of the elbow method for selecting $K$ in $K$-means clustering. 
+(a) Example 2d data set.
+(b) We ran $K$-means on the data set in (a) for $1\leq K\leq 15$ and plotted the optimal value of the distortion function $J$ against $K$.}
+\label{fig:kmeans-elbow}
+\end{figure*}
+
 The only user-set parameter in the $K$-means algorithm is the number of clusters.
 Therefore, model selection for $K$-means amounts to selecting the optimal value for $K$.
 
@@ -273,41 +315,161 @@ Splitting the group into its constituent clusters should have a large effect on 
 If $K > K^*$, we have broken individual clusters into smaller groups.
 Thus, we would expect only a small reduction in the distortion compared to $K^*$.
 
+We have illustrated the elbow method in Figure \ref{fig:kmeans-elbow}.
+Note the disctinct ``kinks" at $K=3$ and $K=5$.
+Looking at panel (a), either choice for $K$ could be a reasonable choice.
+
 In practical applications, the optimal value for $K$ is often ambiguous.
 In fact, a common behaviour of real-world data is that the number of clusters grows with the size of the data set.
 
 Because of this, $K$ is usually chosen manually in practice.
-In some applications, we domain-specific knowledge may give provide a reasonable value for $K$.
+In some applications, domain-specific knowledge may provide a reasonable value for $K$.
+
+
 
 \subsection{Implementaion Details and Demonstration}
+\label{sect:kmeans-code}
+We have implemented the $K$-means algorithm in C++ using the external linear algebra library ``Armadillo" \cite{armadillo}.
+Translating the pseudo-code in algorithm \ref{alg:kmeans} into C++ is straight-forward.
+We only added two further features.
+\begin{enumerate}
+\item We put set a maximum value for the number of iterations in order to put a bound on the running time.
+This is not strictly necessary since, as we saw in section \ref{sect:kmeans-derivation}, the algorithm is guaranteed to converge.
+\item We run the algorithm multiple times, randomly re-initializing the centroids before each run.
+We then save the output of the run for which $J$ was smallest.
+As explained in section \ref{sect:kmeans-derivation}, this is done in order to mitigate the risk of getting a poor local optimum.
+\end{enumerate}
+A common demonstration of the $K$-means algorithm is image compression.
+\begin{itemize}
+\item Image compression
+\item MNIST data
+\end{itemize}
 
 
-Figure \ref{fig:kmeans1} shows a result from running K-Means to convergence with $K = 3$.
-\begin{figure}
-\centering
-\includegraphics[width=3in]{kmeans1.png}
-\caption{Result of running the K-Means algorithm on the toyclusters dataset with $K=3$}
-\label{fig:kmeans1}
-\end{figure}
-
-However, it is possible for the K-Means algorithm to get stuck in local optima.
-Figure \ref{fig:kmeans2} is the same as figure \ref{fig:kmeans1} but with a different initialization for the cluster centroids. 
-\begin{figure}
-\centering
-\includegraphics[width=3in]{kmeans2.png}
-\caption{Local optimum of K-Means algorithm ($K=3$).}
-\label{fig:kmeans2}
-\end{figure}
 
 \subsection{Extensions and Generalizations of $K$-Means}
-We have described the K-Means algorithm using the squared Euclidean metric as a dissimilarity measure between data points.
-It is possible to formulate the algorithm using a general dissimilarity metric $V(\boldsymbol x, \boldsymbol x')$.
-In that case, the distortion function takes the form $J(\boldsymbol c, \boldsymbol \mu) = \sum_{i=1}^N V(\boldsymbol x^{(i)}, \boldsymbol \mu_{c^{(i)}})$.
-The algorithm is then known as \emph{K-Medoids}.
+\label{sect:kmeans-concl}
+In the introduction, we said that we would like data points inside the same cluster to be similar to each other and dissimilar to data points in other clusters.
 
-For more information on K-Means clustering, see \cite{Bishop}.
+The notion of similarity that we have been using in our discussion so far is based on squared Euclidean distance:
+Two points $\bs x$ and $\bs x'$ are dissimilar if $||\bs x-\bs x'||^2$ is large.
+
+It is possible to formulate the $K$-means algorithm using a general dissimilarity metric $V(\boldsymbol x, \boldsymbol x')$.
+In that case, the distortion function takes the form
+\begin{equation}
+\label{eqn:kmedoid-distortion}
+J(z^{(1)},\dots,z^{(N)},\bs \mu_1,\dots,\bs \mu_K) = \sum_{i=1}^N \sum_{k=1}^K \id\{z^{(i)}=k\}\,V(\bs x^{(i)}, \bs \mu_k)
+\end{equation}
+and the resulting algorithm is a generalization of $K$-means known as the \emph{$K$-medoids algorithm}.
+
+Updating the cluster centroids in the $K$-medoids algorithm could be more complicated than in the $K$-means algorithm since the metric $V$ may not offer the same analytical convenience as the squared Euclidean metric.
+One possible way of dealing with this problem is to restrict the cluster centroids $\bs\mu_k$ to be one of the data points $\bs x^{(i)}$ in cluster $k$.
+This can be implemented as discrete search over the cluster.
+
+Further extensions of the $K$-means algorithm are achieved by improving the cluster assignment step.
+In its current form, we need to compute the squared Euclidean distance a total of $K$ times for each of the $N$ data points.
+There have been proposals for speeding up this step (see \cite{Bishop} for a discussion and references).
+
+In the section \ref{sect:gmm}, we will discuss the Gaussian mixture model which can be regarded as a generalization of $K$-means to a probabilistic framework.
+
+For more information on K-Means clustering, consult \cite{Bishop,Murphy}.
+
+
+
+
+
+
+\section{Latent Variable Models and the EM Algorithm}
+\label{sect:EM}
+
+\subsection{The EM algorithm: General setting}
+The EM algorithm is powerful variational technique that is very popular in latent variable models.
+In the general framework, we have a model for the joint distribution $p(x,z;\theta)$ (which is parameterized by $\theta$) but we only observe $x$.
+Given a training data set $S=\{x^{(1)},\dots,x^{(N)}\}$, we would like to find the parameters $\theta$ that maximise the log likelihood of the data
+\begin{equation}
+\label{eqn:EMlikelihood}
+\begin{split}
+l(\theta) &= \sum_{i=1}^N \log p(x^{(i)};\theta)\\
+&= \sum_{i=1}^N \log \sum_{z^{(i)}} p(x^{(i)},z^{(i)};\theta)
+\end{split}
+\end{equation}
+The EM algorithm solves this problem in two steps.
+In the expectation step, it forms a function that is a lower bound to $l(\theta)$ and that is tight at the current value of $\theta$.
+In the maximization step, it finds $\theta$ that maximizes this lower bound.
+This guarantees that we increase the value of $l(\theta)$ in each step (unless we are already at a maximum).
+
+Let $Q_i(z^{(i)})$ be a probability measure on $z^{(i)}$, i.e. $Q_i(z^{(i)}) \geq 0$ and $\sum_{z^{(i)}} Q_i(z^{(i)}) = 1$. We can then express our objective function as
+\begin{equation}
+\begin{split}
+l(\theta) &= \sum_{i=1}^N \log \sum_{z^{(i)}} p(x^{(i)},z^{(i)};\theta)\\
+&= \sum_{i=1}^N \log \sum_{z^{(i)}} Q_i(z^{(i)}) \frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\\
+&= \sum_{i=1}^N \log \mathbb{E}_{z^{(i)} \sim Q_i}\left[\frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\right]\\
+\end{split}
+\end{equation}
+
+where we used the definition of the expectation operator. To proceed, we make use of \emph{Jensen's Inequality}: Let $X$ be a random variable and $f$ a convex function. Then
+\begin{equation}
+f(\mathbb{E}[X]) \leq \mathbb{E}[f(X)]
+\label{eqn:jensen}
+\end{equation}
+Further, if $f$ is strictly convex, then 
+\begin{equation}
+\mathbb{E}[f(X)] = f(\mathbb{E}[X]) \iff p(X = E[X]) = 1
+\label{eqn:jensentight}
+\end{equation}
+If $f$ is concave, then $-f$ is convex and thus the inequality is reversed.
+
+By strict concavity of the log function, we thus have
+\begin{equation}
+\begin{split}
+l(\theta) &=  \sum_{i=1}^N \log \mathbb{E}_{z^{(i)} \sim Q_i}\left[\frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\right]\\
+&\geq \sum_{i=1}^N \mathbb{E}_{z^{(i)} \sim Q_i}\left[\log \frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\right]\\ 
+&= \sum_{i=1}^N \sum_{z^{(i)}} Q_i(z^{(i)}) \log \frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\\ 
+&= J(\theta,Q)
+\end{split}
+\end{equation}
+
+where $Q=\{Q_1,\dots,Q_N\}$ and $J(\theta,Q)$ is a lower bound to $l(\theta)$ for all valid sets of probability measures $Q$.
+We want to choose $Q_i$ such that the bound is tight at the current value of $\theta$.
+Thus $p(x^{(i)},z^{(i)})/Q_i(z^{(i)})$ should be constant for all values of $z^{(i)}$. This implies that
+\begin{equation}
+\begin{split}
+Q_i(z^{(i)}) &\propto p(x^{(i)},z^{(i)};\theta)\\
+\Rightarrow Q_i(z^{(i)}) &= \frac{p(x^{(i)},z^{(i)};\theta)}{\sum_{z^{(i)}}p(x^{(i)},z^{(i)};\theta)}\\
+&= \frac{p(x^{(i)},z^{(i)};\theta)}{p(x^{(i)};\theta)}\\
+&= p(z^{(i)}\,|\,x^{(i)};\theta);
+\end{split}
+\end{equation}
+where the second line follows from the normalization constraint on $Q_i$, the third line from the sum rule of probability and the fourth line from the definition of conditional probabilities.
+
+This completes the E-Step of the EM algorithm.
+In the M-Step, we maximise $J(\theta,Q) = \sum_{i=1}^N \sum_{z^{(i)}} Q_i(z^{(i)}) \log \left(p(x^{(i)},z^{(i)};\theta)/Q_i(z^{(i)})\right)$ with respect to $\theta$, keeping $Q_i = p(z^{(i)}\,|\,x^{(i)};\theta)$ fixed.\footnote{Thus, the EM algorithm is analogous to coordinate ascent on $J(\theta,Q)$}.
+See algorithm \ref{alg:EM} for a summary.
+
+\begin{algorithm}
+\caption{EM algorithm}
+\label{alg:EM}
+\begin{algorithmic}[1]
+\Procedure{EM}{$\boldsymbol X,K$}
+\State{Randomly initialize $\theta$}
+\Repeat
+\State{E-Step:}
+\For{$i = 1:N$}
+\State{Set $Q_i(z^{(i)}) = p(z^{(i)}\,|\,x^{(i)};\theta)$}
+\EndFor
+\State{M-Step:}
+\State{$\theta = \argmax_\theta \sum_{i=1}^N \sum_{z^{(i)}} Q_i(z^{(i)}) \log \frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}$}
+\Until{Convergence}
+\EndProcedure \\
+\Return{$(\theta,\{(z^{(1)}, \dots, z^{(N)}\})$}
+\end{algorithmic}
+\end{algorithm}
+
+
+
 
 \section{The Gaussian Mixture Model}
+\label{sect:gmm}
 The Gaussian mixture model (GMM) (also known as mixtures of Gaussians) is the most widely used mixture model.
 Before we explore its applications to clustering, let us first discuss the related problem of density estimation.
 The goal of density estimation is to build the density $p(\boldsymbol x)$ of the random variable $\boldsymbol x \in \mathbb{R}^D$, given a set $\{\boldsymbol x^{(i)}\}_{i=1}^N$ of $N$ observations of $\boldsymbol x$.
@@ -320,12 +482,7 @@ The classical approach to density estimation is to assume $p(\boldsymbol x)$ bel
 \subsection{Modelling densities as mixtures of Gaussians}
 
 What do we do if our data does not seem to come from any of the standard distributions (eg figure \ref{fig:gmm1}).
-\begin{figure}
-\centering
-\includegraphics[width=3in]{gmm1.png}
-%\caption{}
-\label{fig:gmm1}
-\end{figure}
+
 One approach is to do non-parametric density estimation. A more straight forward strategy is to use a mixture model.
 In the GMM, we assume that the data was generated from $K$ distinct Gaussian \emph{base distributions}. 
 We do not know which Gaussian generated which data points, so we introduce the discrete latent variable $z^{(i)} \in \{1,2,\dots,K\}$ that tells us which cluster sample $\boldsymbol x^{(i)}$ belongs to.
@@ -454,88 +611,7 @@ The pseudo-code for fitting the model parameters for the GMM can be found in alg
 \end{algorithm}
 
 
-\subsection{The EM algorithm: General setting}
-The EM algorithm is powerful variational technique that is very popular in latent variable models.
-In the general framework, we have a model for the joint distribution $p(x,z;\theta)$ (which is parameterized by $\theta$) but we only observe $x$.
-Given a training data set $S=\{x^{(1)},\dots,x^{(N)}\}$, we would like to find the parameters $\theta$ that maximise the log likelihood of the data
-\begin{equation}
-\label{eqn:EMlikelihood}
-\begin{split}
-l(\theta) &= \sum_{i=1}^N \log p(x^{(i)};\theta)\\
-&= \sum_{i=1}^N \log \sum_{z^{(i)}} p(x^{(i)},z^{(i)};\theta)
-\end{split}
-\end{equation}
-The EM algorithm solves this problem in two steps.
-In the expectation step, it forms a function that is a lower bound to $l(\theta)$ and that is tight at the current value of $\theta$.
-In the maximization step, it finds $\theta$ that maximizes this lower bound.
-This guarantees that we increase the value of $l(\theta)$ in each step (unless we are already at a maximum).
 
-Let $Q_i(z^{(i)})$ be a probability measure on $z^{(i)}$, i.e. $Q_i(z^{(i)}) \geq 0$ and $\sum_{z^{(i)}} Q_i(z^{(i)}) = 1$. We can then express our objective function as
-\begin{equation}
-\begin{split}
-l(\theta) &= \sum_{i=1}^N \log \sum_{z^{(i)}} p(x^{(i)},z^{(i)};\theta)\\
-&= \sum_{i=1}^N \log \sum_{z^{(i)}} Q_i(z^{(i)}) \frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\\
-&= \sum_{i=1}^N \log \mathbb{E}_{z^{(i)} \sim Q_i}\left[\frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\right]\\
-\end{split}
-\end{equation}
-
-where we used the definition of the expectation operator. To proceed, we make use of \emph{Jensen's Inequality}: Let $X$ be a random variable and $f$ a convex function. Then
-\begin{equation}
-f(\mathbb{E}[X]) \leq \mathbb{E}[f(X)]
-\label{eqn:jensen}
-\end{equation}
-Further, if $f$ is strictly convex, then 
-\begin{equation}
-\mathbb{E}[f(X)] = f(\mathbb{E}[X]) \iff p(X = E[X]) = 1
-\label{eqn:jensentight}
-\end{equation}
-If $f$ is concave, then $-f$ is convex and thus the inequality is reversed.
-
-By strict concavity of the log function, we thus have
-\begin{equation}
-\begin{split}
-l(\theta) &=  \sum_{i=1}^N \log \mathbb{E}_{z^{(i)} \sim Q_i}\left[\frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\right]\\
-&\geq \sum_{i=1}^N \mathbb{E}_{z^{(i)} \sim Q_i}\left[\log \frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\right]\\ 
-&= \sum_{i=1}^N \sum_{z^{(i)}} Q_i(z^{(i)}) \log \frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\\ 
-&= J(\theta,Q)
-\end{split}
-\end{equation}
-
-where $Q=\{Q_1,\dots,Q_N\}$ and $J(\theta,Q)$ is a lower bound to $l(\theta)$ for all valid sets of probability measures $Q$.
-We want to choose $Q_i$ such that the bound is tight at the current value of $\theta$.
-Thus $p(x^{(i)},z^{(i)})/Q_i(z^{(i)})$ should be constant for all values of $z^{(i)}$. This implies that
-\begin{equation}
-\begin{split}
-Q_i(z^{(i)}) &\propto p(x^{(i)},z^{(i)};\theta)\\
-\Rightarrow Q_i(z^{(i)}) &= \frac{p(x^{(i)},z^{(i)};\theta)}{\sum_{z^{(i)}}p(x^{(i)},z^{(i)};\theta)}\\
-&= \frac{p(x^{(i)},z^{(i)};\theta)}{p(x^{(i)};\theta)}\\
-&= p(z^{(i)}\,|\,x^{(i)};\theta);
-\end{split}
-\end{equation}
-where the second line follows from the normalization constraint on $Q_i$, the third line from the sum rule of probability and the fourth line from the definition of conditional probabilities.
-
-This completes the E-Step of the EM algorithm.
-In the M-Step, we maximise $J(\theta,Q) = \sum_{i=1}^N \sum_{z^{(i)}} Q_i(z^{(i)}) \log \left(p(x^{(i)},z^{(i)};\theta)/Q_i(z^{(i)})\right)$ with respect to $\theta$, keeping $Q_i = p(z^{(i)}\,|\,x^{(i)};\theta)$ fixed.\footnote{Thus, the EM algorithm is analogous to coordinate ascent on $J(\theta,Q)$}.
-See algorithm \ref{alg:EM} for a summary.
-
-\begin{algorithm}
-\caption{EM algorithm}
-\label{alg:EM}
-\begin{algorithmic}[1]
-\Procedure{EM}{$\boldsymbol X,K$}
-\State{Randomly initialize $\theta$}
-\Repeat
-\State{E-Step:}
-\For{$i = 1:N$}
-\State{Set $Q_i(z^{(i)}) = p(z^{(i)}\,|\,x^{(i)};\theta)$}
-\EndFor
-\State{M-Step:}
-\State{$\theta = \argmax_\theta \sum_{i=1}^N \sum_{z^{(i)}} Q_i(z^{(i)}) \log \frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}$}
-\Until{Convergence}
-\EndProcedure \\
-\Return{$(\theta,\{(z^{(1)}, \dots, z^{(N)}\})$}
-\end{algorithmic}
-\end{algorithm}
 
 In the Gaussian mixture model, for the E-step we have
 \begin{equation}
@@ -646,8 +722,6 @@ and the effects of caffine on my ability to produce this report on time.
 %% appendix sections are then done as normal sections
 \appendix
 
-\section{Derivation of GMM with known cluster identities}
-\label{app:gmm}
 
 %% References
 %%
