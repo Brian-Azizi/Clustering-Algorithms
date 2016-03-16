@@ -52,8 +52,9 @@
 %% Declaring \argmin and \argmax operators:
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
-%% Declare trace operator \Tr:
+%% Declare trace operator \Tr and covariance \Cov:
 \DeclareMathOperator*{\Tr}{Tr}
+\DeclareMathOperator*{\Cov}{Cov}
 %% Declare pdf functions
 \DeclareMathOperator*{\Dir}{Dir}
 \DeclareMathOperator*{\Cat}{Cat}
@@ -137,14 +138,7 @@ Abstract.
 %% main text
 \section{Introduction}
 \label{sect:Intro}
-The goal of \emph{clustering} is to discover structure in the data by identifying groups of similar data points. 
-Clustering has found applications in biology (gene clustering), market research (market segmentation), grouping similar news (news clustering, eg Google News) and image segmentation (which has applications in medicine).
-
-We begin by introducing a very simple clustering algorithm: $K$-Means. 
-Then we make a small digression to discuss the related problem of density estimation (and outlier detection) which will lead to the Mixture of Gaussians model.
-
-
-
+Intro.
 
 \section{$K$-Means Clustering}
 In this section we introduce the \emph{$K$-Means algorithm} \cite{lloyd1982}.
@@ -204,7 +198,7 @@ The algorithm then repeats the following two steps until convergence:
 \item Assign each cluster centroid $\bs\mu_k$ to the mean of all samples that currently belong to cluster $k$.
 \end{enumerate}
 The algorithm has converged once there are no more changes.
-We have summarized the $K$-means algorithm in algorithm \ref{alg:kmeans}.
+We have summarized the $K$-means algorithm in Algorithm \ref{alg:kmeans}.
 
 Figure \ref{fig:kmeans-prog} illustrates the algorithm with $K=3$ on a 2d data set consisting of 300 data points.
 We chose a poor initialization for the cluster centroids so that we could show several iterations. 
@@ -284,7 +278,6 @@ Convergence of the $K$-means algorithm was extensively studied by \cite{macqueen
 \end{figure}
 
 
-
 \subsection{Model selection for $K$-Means Clustering}
 \label{sect:kmeans-ms}
 
@@ -328,7 +321,7 @@ In some applications, domain-specific knowledge may provide a reasonable value f
 
 
 
-\subsection{Implementaion Details and Demonstration}
+\subsection{Implementation Details and Demonstration}
 \label{sect:kmeans-code}
 We have implemented the $K$-means algorithm in C++ using the external linear algebra library ``Armadillo" \cite{armadillo}.
 Translating the pseudo-code in algorithm \ref{alg:kmeans} into C++ is straight-forward.
@@ -340,15 +333,14 @@ This is not strictly necessary since, as we saw in section \ref{sect:kmeans-deri
 We then save the output of the run for which $J$ was smallest.
 As explained in section \ref{sect:kmeans-derivation}, this is done in order to mitigate the risk of getting a poor local optimum.
 \end{enumerate}
-A common demonstration of the $K$-means algorithm is image compression.
+
+Possible demo for $K$-means:
 \begin{itemize}
 \item Image compression
 \item MNIST data
 \end{itemize}
 
 
-
-\subsection{Extensions and Generalizations of $K$-Means}
 \label{sect:kmeans-concl}
 In the introduction, we said that we would like data points inside the same cluster to be similar to each other and dissimilar to data points in other clusters.
 
@@ -438,7 +430,7 @@ We can express the probability mass function of $Z$ by
 \end{equation}
 Note that, due their probabilistic nature, the parameters $\bs \pi = (\pi_1,\dots,\pi_K)$ must satisfy $\pi_k \geq 0$, $\sum_{k=1}^K \pi_k = 1$.
 
-Out mixture models can then be built as follows:
+Our mixture models can then be built as follows:
 \begin{equation}
 \begin{split}
 \label{eqn:mixture-lvm}
@@ -561,6 +553,24 @@ Further, if $f$ is strictly convex, then the inequality is strict and we have
 An illustration of Jensen's inequality is shown in Figure \ref{fig:jensen}.
 If $f$ is concave, then the holds in inequality reverse since $(-f)$ is convex in that case. 
 
+\begin{algorithm}
+\caption{The EM algorithm for LVMs}
+\label{alg:EM}
+\begin{algorithmic}[1]
+\State Initialize $\bs\theta^{\,(current)}$
+\Statex\Repeat
+\Statex \quad\, E-Step:
+\For{$i = 1,\dots,N$}
+\State $Q_i(z^{(i)}) = p(z^{(i)}\,|\,\bs x^{(i)},\bs\theta^{\,(current)})$
+\EndFor
+\Statex\Statex \quad\, M-Step:
+\State $\bs\theta^{\,(new)} = \argmax_{\bs\theta}\sum_{i=1}^N \sum_{z^{(i)}} Q_i(z^{(i)}) \log \left( \frac{p(\bs x^{(i)},z^{(i)}\,|\,\bs\theta)}{Q_i(z^{(i)})}\right)$
+\State Set $\theta^{\,(current)} = \theta^{\,(new)}$
+\Until{Convergence}
+\Statex\State\Return{  $\bs\theta^{\,(current)},z^{(1)}, \dots, z^{(N)}$}
+\end{algorithmic}
+\end{algorithm}
+
 Applying Jensen's inequality to (\ref{eqn:EMlikelihood}) and using the fact that the log function is strictly concave gives us
 \begin{equation}
 \begin{split}
@@ -573,6 +583,34 @@ where we used $\bs Q$ to denote $\{Q_1,\dots,Q_N\}$.
 
 $J(\bs\theta,\bs Q)$ is a lower bound to the log likelihood function $\ell(\bs\theta)$ for \emph{any} valid choice of probability functions $\bs Q$.
 What should our choice for the $Q_i$ be?
+
+
+
+\begin{figure}
+\begin{tikzpicture}[xscale=0.8]
+\draw [orange, thin] (3.05,0) -- (3.05,2.7) -- (0,2.7) node [black,left] {$\ell\left(\theta^{\,(current)}\right)$};
+\draw [orange, thin] (4.1,0) -- (4.1,3.9) -- (0,3.9) node [black, left] {$\ell\left(\theta^{\,(new)}\right)$};
+\draw [orange, thin] (4.1,3.2) -- (0,3.2) node [black,left] {$J(\theta^{\,(new)},\bs Q)$};
+\node at (4.2,0) [black, below] {$\theta^{\,(new)}$};
+\node at (2.9,0) [black, below] {$\theta^{\,(current)}$};
+\node at (6.8,1.5) {$J(\theta,\bs Q)$};
+\draw [blue,thick] (0,1) [out=40,in=180] to (1.5,3);
+\draw [blue,thick] (1.5,3) [out=0,in=180] to (2.5,2.5);
+\draw [blue,thick] (2.5,2.5) [out=0,in=180] to (4.5,4);
+\draw [blue,thick] (4.5,4) [out=0,in=180] to (5.5,3.5);
+\draw [blue,thick] (5.5,3.5) [out=0,in=120] to (6.5,2.5) node [black,right] {$\ell(\theta)$};
+\draw [thick,domain=2.6:5.5] plot (\x, {2.18+(sin((\x - 2.5) r)});
+\draw [thick] (1.3,0) [out=70,in=230] to (2.6,2.28);
+\draw [thick] (5.5,2.32) to [out=310,in=100] (6.5,0);
+\draw [ultra thick,<->] (0,5) -- (0,0) -- (7,0) node [right] {$\theta$};
+\end{tikzpicture}
+\caption{Illustration of the EM algorithm.
+$J(\theta,\bs Q)$ (black curve) is a lower bound to $\ell(\theta)$ (blue curve).
+The E-step sets $\bs Q$ such that the blue curve and the black curve touch at $\theta^{\,(current)}$.
+The M-step finds $\theta^{\,(new)}$ that maximizes the black curve.
+Note how this brings us closer to a maximum of $\ell(\theta)$.}
+\label{fig:EM}
+\end{figure}
 
 The EM algorithm makes the following choice.
 Suppose we currently have an estimate of our parameters $\bs\theta^{\,(current)}$. 
@@ -600,7 +638,7 @@ Q_i(z^{(i)}) &= \frac{p(\bs x^{(i)},z^{(i)}\,|\,\bs\theta^{\,(current)})}{\sum_{
 \end{split}
 \end{equation}
 where the second line follows from the sum rule of probability (\ref{eqn:sum-rule}) and the third line follows from the definition of conditional probabilities.
-%This completes the E-Step of the EM algorithm.
+
 Small digression: These quantities have an important interpretation in the context of soft clustering using mixture models.
 They are the posterior distributions of the cluster assignments of our data are referred to as \emph{responsibilities}.
 We say that $\Pr(z^{(i)} = k\,|\,\bs x^{(i)},\bs\theta)$ is the responsibility that cluster $k$ takes in explaining sample $\bs x^{(i)}$, and denote it $\gamma_k^{(i)}$.
@@ -620,276 +658,344 @@ where $\ol{Q_i}(z^{(i)}) = p(z^{(i)}\,|\,\bs x^{(i)},\bs\theta^{\,(current)})$.
 This optimization problem is simpler than the direct optimization of the original log likelihood (\ref{eqn:EMlikelihood}).
 In particular, it is possible to find a simple closed-form solution for a wide range of models, including the Gaussian mixture model.
 
-We have summarized the general form of the EM algorithm in algorithm \ref{alg:EM}.
+We have summarized the general form of the EM algorithm in Algorithm \ref{alg:EM} and Figure \ref{fig:EM} provides an illustration.
+An important caveat is that the EM algorithm does not guarantee convergence to the global optimum.
+Thus, different initializations of $\bs\theta$ may lead to different outcomes.
+However, any particular initialization will always result in the same local optimum.
 
-\begin{algorithm}
-\caption{EM algorithm}
-\label{alg:EM}
-\begin{algorithmic}[1]
-\State Initialize $\bs\theta^{\,(current)}$
-\Statex\Repeat
-\Statex $\qquad$ E-Step:
-\For{$i = 1,\dots,N$}
-\State Set $Q_i(z^{(i)}) = p(z^{(i)}\,|\,\bs x^{(i)},\bs\theta^{\,(current)})$
-\EndFor
-\Statex\Statex $\qquad$ M-Step:
-\State $\bs\theta^{\,(new)} = \argmax_{\bs\theta}\sum_{i=1}^N \sum_{z^{(i)}} Q_i(z^{(i)}) \log \left( \frac{p(\bs x^{(i)},z^{(i)}\,|\,\bs\theta)}{Q_i(z^{(i)})}\right)$
-\State Set $\theta^{\,(current)} = \theta^{\,(new)}$
-\Until{Convergence}
-\Statex\State\Return{  $\bs\theta^{\,(current)},z^{(1)}, \dots, z^{(N)}$}
-\end{algorithmic}
-\end{algorithm}
-
-
-
+Thus, similar to the local optima problem in $K$-means, we can try running the EM algorithm multiple times with different initial values in order to increase the chance of obtainint a sufficiently good local optimum.
+This is no coincidence as we will see later that the $K$-means algorithm is in fact just an instance of the EM algorithm.
 
 \section{The Gaussian Mixture Model}
 \label{sect:gmm}
-The Gaussian mixture model (GMM) (also known as mixtures of Gaussians) is the most widely used mixture model.
-Before we explore its applications to clustering, let us first discuss the related problem of density estimation.
-The goal of density estimation is to build the density $p(\boldsymbol x)$ of the random variable $\boldsymbol x \in \mathbb{R}^D$, given a set $\{\boldsymbol x^{(i)}\}_{i=1}^N$ of $N$ observations of $\boldsymbol x$.
+This section discusses \emph{Gaussian mixture models} (GMM) and their use in clustering.
+We begin with a general description of the model.
+Next we show how to fit the parameters of the model using the EM algorithm and derive the update formulas.
+We then briefly discuss model selection for GMMs.
+Following that, we give a short description and demonstration of our implementation of the model before considering possible extensions.
 
-Once we have formed the density $p(\boldsymbol x)$, we can apply the model to the problem of \emph{anomaly detection}.
-Given a new observation $\boldsymbol x^{(N+1)}$, we flag it as an anomaly if $p(\boldsymbol x^{(N+1)}) < \epsilon$, where $\epsilon > 0$ is a pre-defined threshold.
+\subsection{Clustering with the Gaussian Mixture Model}
+Consider again the general mixture model (\ref{eqn:mixture-lvm}) and the resulting mixture distribution (\ref{eqn:mixture-model}).
+The Gaussian mixture model is a particular instance of this model corresponding to the choice $F_k = \mathcal{N}(\bs\mu_k,\bs\Sigma_k)$.
+In other words, the GMM is a mixture model with Gaussian base distributions.
 
-The classical approach to density estimation is to assume $p(\boldsymbol x)$ belongs to some parametric family of distributions and to then infer the parameters from the data using tools such as \emph{maximum likelihood estimation}. 
-
-\subsection{Modelling densities as mixtures of Gaussians}
-
-What do we do if our data does not seem to come from any of the standard distributions (eg figure \ref{fig:gmm1}).
-
-One approach is to do non-parametric density estimation. A more straight forward strategy is to use a mixture model.
-In the GMM, we assume that the data was generated from $K$ distinct Gaussian \emph{base distributions}. 
-We do not know which Gaussian generated which data points, so we introduce the discrete latent variable $z^{(i)} \in \{1,2,\dots,K\}$ that tells us which cluster sample $\boldsymbol x^{(i)}$ belongs to.
-
-We assume that 
+The probability density function for a general $D$-dimensional Gaussian variable $\bs X$ is given by
 \begin{equation}
-z \sim Discrete(\,\boldsymbol \pi)
-\label{eqnzdistro}
+\label{eqn:gauss-pdf}
+\mathcal{N}(\bs x|\,\bs\mu,\bs\Sigma) = (2\pi)^{-\frac{D}{2}}|\bs\Sigma|^{-\frac{1}{2}}\exp\left((\bs x - \bs\mu)^T\bs\Sigma^{-1}(\bs x-\bs\mu)\right)
 \end{equation}
+where $\bs\mu = \mathbb{E}[\bs X]$ is the mean parameter and $\Sigma = \Cov(\bs X)$ is the covariance parameter.
+The covariance parameter $\bs\Sigma$ is a $D\times D$ symmetric and positive definite matrix, while $\bs\mu$ is a $D$-dimensional vector.
+
+We can express the GMM with $K$ mixture components as
 \begin{equation}
-\boldsymbol x \,|\, z \sim \mathcal{N}(\,\boldsymbol{\mu_z}, \boldsymbol \Sigma_z)
-\label{eqn:x|z-distro}
-\end{equation}
-This means
-\begin{equation}
-p(z) = \pi_z, \qquad \pi_k > 0 \, \forall k \in \{1,\dots,K\}, \sum_{k=1}^K \pi_k = 1 
-\end{equation}
-\begin{equation}
+\label{eqn:gmm-lvm}
 \begin{split}
-p(\boldsymbol x\,|\,z) &= \mathcal{N}(\boldsymbol x\,|\, \boldsymbol \mu_z, \boldsymbol \Sigma_z) \\
-&= \frac{1}{\sqrt{2\pi\,|\Sigma_z|}}\exp(-\frac{1}{2}(\boldsymbol x - \boldsymbol \mu_z)^T\boldsymbol \Sigma_z^{-1} (\boldsymbol x - \boldsymbol \mu_z))\\
+Z\,|\,\pi_1,\dots,\pi_K &\sim \Cat(\pi_1,\dots,\pi_K)\\
+\bs X \,|\,Z=k,\bs\mu_k,\bs\Sigma_k &\sim \mathcal{N}(\bs\mu_k,\bs\Sigma_k)
 \end{split}
 \end{equation}
-
-From the sum rule and product rule of probability, we have
+and the resulting model for the joint distribution of $\bs X$ is 
 \begin{equation}
-\begin{split}
-p(\boldsymbol x) &= \sum_z p(\boldsymbol x, z) \\
-&= \sum_z p(z)p(\boldsymbol x \,|\, z)\\
-&= \sum_{k=1}^K \pi_k \mathcal{N}(\boldsymbol x\,|\,\boldsymbol \mu_k, \boldsymbol \Sigma_k)
-\label{eqn:gmmdensity}
-\end{split}
+\label{eqn:gmm-density}
+p(\bs x|\,\bs\pi,\bs\mu,\bs\Sigma) = \sum_{k=1}^K \mathcal{N}(\bs x|\,\bs\mu_k,\bs\Sigma_k)
 \end{equation}
+where we used $\bs\pi$, $\bs\mu$ and $\bs\Sigma$ to denote the collections $(\pi_1,\dots,\pi_K)$, $(\bs\mu_1,\dots,\bs\mu_K)$ and $(\bs\Sigma_1,\dots,\bs\Sigma_K)$, respectively.
+
+How can we used this model to obtain a clustering of a data set $S = \{\bs x^{(1)},\dots,\bs x^{(N)}\}$?
+In the model, for each observation $\bs x^{(i)}$, there exists a categorical latent variable $z^{(i)}$ that contains the cluster assignment for $\bs x^{(i)}$.
+We do not actually observe $z^{(i)}$ but the model allows us to build their posterior distributions $p(z^{(i)}|\,\bs x^{(i)},\bs \theta)$.
+These can be used to specify a soft clustering of the data:
+\begin{equation}
+\Pr(\mbox{$\bs x^{(i)}$ is in cluster $K$}) = \Pr(z^{(i)} = k|\,\bs x^{(i)},\bs\theta)
+\end{equation}
+As we mentioned in the previous section, we refer to these quantities responsibilities and denote them with $\gamma_k^{(i)}$.
+
 
 \subsection{The EM algorithm for the GMM}
-Given a training set $S$, how to we fit the model parameters $\{\pi_k, \boldsymbol \mu_k, \boldsymbol \Sigma_k; k=1,\dots,K\}$?
-	If the labels $z^{(i)}$ were observed, we could formulate the likelihood of the data \footnote{In this case the model is equivalent to the quadratic discriminant analysis model used for classification} 
+The most popular inference method for the GMM is maximum likelihood estimation using the EM algorithm.
+Using (\ref{eqn:gmm-density}), we can express the log likelihood of our data set $S$ under the model as
 \begin{equation}
-\mathcal{L}(\pi_k, \boldsymbol \mu_k, \boldsymbol \Sigma_k) = \prod_{i=1}^N p(\boldsymbol x^{(i)},z^{(i)}\,|\,\pi_k, \boldsymbol \mu_k, \boldsymbol \Sigma_k)
-\label{eqn:LDAlikelihood}
-\end{equation}
-Maximising the likelihood would yield the following solutions for $k = 1,\dots,K$:
-\begin{equation}
-\begin{split}
-\label{eqn:LDAstats}
-&\pi_k = \frac{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\}}{N}\\
-&\mu_k = \frac{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\} \boldsymbol{x}^{(i)}}{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\}}\\
-&\Sigma_k = \frac{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\} (\boldsymbol{x}^{(i)} - \boldsymbol \mu_k)(\boldsymbol{x}^{(i)} - \boldsymbol \mu_k)^T}{\sum_{i=1}^N \mathbbm{1}\{z^{(i)} = k\}}\\
-\end{split}
-\end{equation}
-(See the appendix for a derivation.)
-
-In the unsupervised setting, we do not observe the values of $z^{(i)}$. 
-Thus, the likelihood of our data now takes the form
-\begin{equation}
-	\mathcal{L}(\boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma) = \prod_{i=1}^N p(\boldsymbol x^{(i)}\,|\,\boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma)\\
-\label{eqn:gmmLikelihood}
-\end{equation}
-Taking logs on both side and using equation \ref{eqn:gmmdensity}, we can formulate our objective function as
-\begin{equation}
-\begin{split}
-\log\mathcal{L}(\boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma) &= \sum_{i=1}^N \log p(\boldsymbol x^{(i)}\,|\,\boldsymbol \pi \boldsymbol \mu, \boldsymbol \Sigma)\\
-&= \sum_{i=1}^N \log \left(\sum_{k=1}^K \pi_k \mathcal{N}(\boldsymbol x^{(i)}\,|\, \boldsymbol \mu_k, \boldsymbol \Sigma_k)\right)\\
-\end{split}
 \label{eqn:gmmlogLikelihood}
+\begin{split}
+\ell(\bs\pi,\bs\mu,\bs\Sigma) &= \sum_{i=1}^N \log \left(p(\bs x^{(i)}|\,\bs\pi,\bs\mu,\bs\Sigma\right)\\
+&= \sum_{i=1}^N \log \left(\sum_{k=1}^K \pi_k \mathcal{N}(\bs x^{(i)}|\,\bs\mu_k,\bs\Sigma_k)\right)
+\end{split}
 \end{equation}
+Direct maximization of this log likelihood function is analytically intractable and we apply the EM algorithm instead.
 
-Maximising this objective function directly is problematic due to summation inside the logarithm term and there is, in fact, no known closed form solution.
-Instead we use an iterative scheme in which we first formulate a ``guess" for the $z^{(i)}$ given our current parameter values and then find the optimal model parameters given our guess. 
+We start by setting some initial value for the parameters $\bs\pi^{\,(current)}$, $\bs\mu^{\,(current)}$ and $\bs\Sigma^{\,(current)}$.
+This is typically done randomly.
+However, we have to be careful when initializing the mixing coefficients $\bs\pi$ since they need satisfy the constraints that $\sum_{k=1}^K \pi_k = 1$ and $\pi_k \geq 0$ for all $k$.
+Once an initial value for the parameters is set, the EM algorithm alternates between the E-step and the M-step until some convergence criterion is met.
 
-Formally, we build the \emph{responsibility} that cluster $k$ takes for explaning sample $\boldsymbol x^{(i)}$, denoted $\gamma_k^{(i)}$.
-This is defined to be the posterior probabibility that $z^{(i)} = k$:
+In the E-step (\ref{eqn:EM-E}), we need to find the $Q_i(z^{(i)})$
+In the case of the GMM, this translates to calculating the responsibilities $\gamma_k^{(i)}$ for all values of $i$ and $k$.
+Using Bayes' rule, we can derive a simple formula in terms of the current values of the parameter $\bs\pi$, $\bs\mu$ and $\bs\Sigma$:
 \begin{equation}
 \label{eqn:gmmresponsibility}
 \begin{split}
-y_k^{(i)} &= p(z^{(i)}=k\,|\,\boldsymbol x^{(i)}; \boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma)\\
-	&= \frac{p(z^{(i)}=k;\boldsymbol \pi)p(\boldsymbol x^{(i)}\,|\,z^{(i)}=k;\boldsymbol \mu, \boldsymbol \Sigma)}
-	{\sum_{j=1}^K p(z^{(i)}=j;\boldsymbol \pi)p(\boldsymbol x^{(i)}\,|\,z^{(i)}=j;\boldsymbol \mu, \boldsymbol \Sigma)}\\
-	&= \frac{\pi_k\mathcal{N}(\boldsymbol x^{(i)}\,|\,\boldsymbol \mu_k, \boldsymbol \Sigma_k)}
-	{\sum_{j=1}^K \pi_j\mathcal{N}(\boldsymbol x^{(i)}\,|\,\boldsymbol \mu_j, \boldsymbol \Sigma_j)}
+\gamma_k^{(i)} &= \Pr(z^{(i)}=k|\,\bs x^{(i)},\bs\pi,\bs\mu,\bs\Sigma)\\
+&= \frac{\Pr(z^{(i)}=k|\,\bs\pi)p(\bs x^{(i)}|\,z^{(i)}=k,\bs\mu,\bs\Sigma)}{\sum_{j=1}^K \Pr(z^{(i)}=j|\,\bs\pi)p(\bs x^{(i)}|\,z^{(i)}=j,\bs\mu,\bs\Sigma)}\\
+&= \frac{\pi_k\mathcal{N}(\bs x^{(i)}|\,\bs\mu_k,\bs\Sigma_k)}{\sum_{j=1}^K \pi_j\mathcal{N}(\bs x^{(i)}|\,\bs\mu_j,\bs\Sigma_j)}
 \end{split}
 \end{equation}
+where, for convenience, we have temporarily dropped the ``$(current)$" superscript.
 
-Once we have calculated the responsibilities, we can use them to update our model parameters.
+In the M-Step (\ref{eqn:EM-M}), we find the parameters $\bs\pi$, $\bs\mu$ and $\bs\Sigma$ that maximize $J(\bs\theta,\ol{\bs Q})$.
+For Gaussian mixtures, $J$ takes the form
 \begin{equation}
-\label{eqn:gmmstats}
+J(\bs\pi,\bs\mu,\bs\Sigma,\ol{\bs\gamma}) = \sum_{i=1}^N \sum_{k=1}^K \ol\gamma_k^{\,(i)} \log\left(\frac{\pi_k\mathcal{N}(\bs x^{(i)}|\,\bs\mu_k,\bs\Sigma_k)}{\ol\gamma_k^{\,(i)}}\right)
+\end{equation}
+where we put a bar on top of $\gamma$ to indicate that the responsibilities are kept constant during the M-step.
+Rearranging and plugging in the pdf for the Gaussian pdf (\ref{eqn:gauss-pdf}) gives us
+\begin{equation}
 \begin{split}
-\pi_k &= \frac{\sum_{i=1}^N \gamma_k^{(i)}}{N}\\
-\boldsymbol \mu_k &= \frac{\sum_{i=1}^N \gamma_k^{(i)} \boldsymbol x^{(i)}}{\sum_{i=1}^N \gamma_k^{(i)}}\\
-\boldsymbol \Sigma_k &= \frac{\sum_{i=1}^N \gamma_k^{(i)}(\boldsymbol x^{(i)} - \boldsymbol \mu_k)(\boldsymbol x^{(i)} - \boldsymbol \mu_k)^T}{\sum_{i=1}^N \gamma_k^{(i)}}\\
+J(\bs\pi,\bs\mu,&\bs\Sigma,\ol{\bs\gamma}) = \sum_{i=1}^N\sum_{k=1}^K \ol\gamma_k^{\,(i)} \left(\log\pi_k \right.\\
+&\left.\qquad+\log\mathcal{N}(\bs x^{(i)}|\,\bs\mu_k,\bs\Sigma_k) - \log\ol\gamma_k^{\,(i)}\right)\\
+&= \sum_{i=1}^N\sum_{k=1}^K \ol\gamma_k^{\,(i)} \left(\log\pi_k -\frac{1}{2}D\log(2\pi) + \frac{1}{2}\log|\bs\Sigma_k^{-1}|\right.\\
+&\left.\qquad -\frac{1}{2}(\bs x^{(i)}-\bs\mu)^T\bs\Sigma^{-1}(\bs x^{(i)}-\bs\mu) - \log\ol\gamma_k^{\,(i)}\right)\\
+&= const + \sum_{i=1}^N\sum_{k=1}^K \ol\gamma_k^{\,(i)} \left(\log\pi_k + \frac{1}{2}\log|\bs\Sigma_k^{-1}|\right.\\
+&\left.\qquad -\frac{1}{2}(\bs x^{(i)}-\bs\mu)^T\bs\Sigma^{-1}(\bs x^{(i)}-\bs\mu)\right)\\
 \end{split}
 \end{equation}
-Note that we use the new value of $\boldsymbol \mu_k$ to calculate $\boldsymbol \Sigma_k$ in equation \ref{eqn:gmmstats}.
-We iterate these two steps until convergence.
-The typical convergence criterion is that changes in the loglikelihood are below some threshold.
+where $const$ contains all the terms that are independent of the parameters.
 
-Note the similarity with equation \ref{eqn:LDAstats}.
-We have essentially replaced the indicators with \emph{soft weights} $\gamma_k^{(i)}$.
-In the limit in which we observe $z^{(i)}$, we put all the probability mass on the observed value of $z^{(i)}$ and obtain $\gamma_k^{(i)} = \mathbbm{1}\{z^{(i)} = k\}$.
-
-The algorithm above is a particular instance of the \emph{Expectation-Maximization (EM)} algorithm.
-Equation \ref{eqn:gmmresponsibility} corresponds to the \emph{expectation step (E-step)} and equation \ref{eqn:gmmstats} corresponds to the \emph{maximization step (M-Step)} of the EM algorithm.
-We will discuss the EM algorithm in more detail in the next section and also derive equations \ref{eqn:gmmresponsibility} and \ref{eqn:gmmstats}.
-The pseudo-code for fitting the model parameters for the GMM can be found in algorithm \ref{alg:gmm}.
-
-\begin{algorithm}
-\caption{EM algorithm for GMM}
-\label{alg:gmm}
-\begin{algorithmic}[1]
-\Procedure{EM for GMM}{$\boldsymbol X,K$}
-\State{Randomly initialize $(\pi_k, \boldsymbol \mu_k, \boldsymbol \Sigma_k)$ for $k=1,\dots,K$}
-\Repeat
-\For{$i = 1:N$}\Comment{E-Step}
-\State{$\gamma_k^{(i)} = \frac{\pi_k\mathcal{N}(\boldsymbol x^{(i)}\,|\,\boldsymbol \mu_k, \boldsymbol \Sigma_k)}
-	{\sum_{j=1}^K \pi_j\mathcal{N}(\boldsymbol x^{(i)}\,|\,\boldsymbol \mu_j, \boldsymbol \Sigma_j)}$}
-\EndFor
-\For{$k = 1:K$}\Comment{M-Step}
-\State{$\pi_k = \frac{\sum_{i=1}^N \gamma_k^{(i)}}{N}$}
-\State{$\boldsymbol \mu_k = \frac{\sum_{i=1}^N \gamma_k^{(i)} \boldsymbol x^{(i)}}{\sum_{i=1}^N \gamma_k^{(i)}}$}
-\State{$\boldsymbol \Sigma_k = \frac{\sum_{i=1}^N \gamma_k^{(i)}(\boldsymbol x^{(i)} - \boldsymbol \mu_k)(\boldsymbol x^{(i)} - \boldsymbol \mu_k)^T}{\sum_{i=1}^N \gamma_k^{(i)}}$}
-\EndFor
-\Until{Convergence}
-\EndProcedure \\
-	\Return{$\{(\gamma^{(1)}_k, \dots, \gamma^{(N)}_k, \pi_k, \boldsymbol \mu_k, \boldsymbol \Sigma_k), \quad k = 1,\dots,K\}$}
-\end{algorithmic}
-\end{algorithm}
-
-
-
-
-In the Gaussian mixture model, for the E-step we have
+In order to maximize $J$ by need to take derivatives with respect to matrices and vectors.
+For later reference, we briefly state three useful matrix derivative identities:
+Suppose $\bs y$ is a $D$-dimensional vector and $\bs A$ is a $D\times D$ matrix with $|\bs A| > 0$.
+Then
 \begin{equation}
-\label{eqn:gmmE}
-\begin{split}
-Q_i(z^{(i)} = k) &= p(z^{(i)} = k\,|\,\boldsymbol x^{(i)}; \boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma)\\
-&= p(z^{(i)}=k\,|\,\boldsymbol x^{(i)}; \boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma)\\
-&= \frac{p(z^{(i)}=k;\boldsymbol \pi)p(\boldsymbol x^{(i)}\,|\,z^{(i)}=k;\boldsymbol \mu, \boldsymbol \Sigma)}
-{\sum_{j=1}^K p(z^{(i)}=j;\boldsymbol \pi)p(\boldsymbol x^{(i)}\,|\,z^{(i)}=j;\boldsymbol \mu, \boldsymbol \Sigma)}\\
-&= \frac{\pi_k\mathcal{N}(\boldsymbol x^{(i)}\,|\,\boldsymbol \mu_k, \boldsymbol \Sigma_k)}
-{\sum_{j=1}^K \pi_j\mathcal{N}(\boldsymbol x^{(i)}\,|\,\boldsymbol \mu_j, \boldsymbol \Sigma_j)} = \gamma_k^{(i)}
-\end{split}
+\label{eqn:derivative1}
+\nabla_{\bs y} (\bs y^T \bs A \bs y) = (\bs A + \bs A^T)\bs y
+\end{equation}
+\begin{equation}
+\label{eqn:derivative2}
+\nabla_{\bs A} (\bs y^T \bs A \bs y) = \bs y \bs y^T
+\end{equation}
+\begin{equation}
+\label{eqn:derivative3}
+\nabla_{\bs A} \log\left|\bs A^{-1}\right| = \bs A^T
 \end{equation}
 
-While in the M-Step we want to find $\pi_k$, $\boldsymbol \mu_k$ and $\boldsymbol \Sigma_k$ that maximize
+To find the opimal parameter $\bs\mu_k$, we set the gradient of $J$ with respect to $\bs \mu_k$ equal to zero:
 \begin{equation}
-\label{eqn:gmmM1}
 \begin{split}
-J(\boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma, \boldsymbol \gamma) &= \sum_{i=1}^N\sum_{z^{(i)}} Q_i(z^{(i)}) \log \frac{p(\boldsymbol x^{(i)},z^{(i)};\boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma)}{Q_i(z^{(i)})}\\
-&= \sum_{i=1}^N \sum_{k=1}^K \gamma_k^{(i)} \log \frac{\pi_j \mathcal{N}(\boldsymbol x^{(i)} \,|\, \boldsymbol \mu_k, \boldsymbol \Sigma_k)}{\gamma_k^{(i)}}\\
+\nabla_{\bs\mu_k} J &= -\frac{1}{2}\sum_{i=1}^N \ol\gamma_k^{\,(i)} \nabla_{\bs\mu_k} (\bs x^{(i)} - \bs\mu_k)^T \bs\Sigma^{-1}(\bs x^{(i)} - \bs\mu_k)\\
+&= \frac{1}{2}\sum_{i=1}^N \ol\gamma_k^{\,(i)}(\bs\Sigma_k^{-1} + \bs\Sigma_k^{-T})(\bs x^{(i)} - \bs\mu_k)\\
+&= \sum_{i=1}^N\ol\gamma_k^{\,(i)} \bs\Sigma^{-1} (\bs x^{(i)} - \bs\mu_k)\\
+&= 0
 \end{split}
 \end{equation}
-Setting the derivative with respect to $\boldsymbol \mu_k$ equal to zero gives
+In the second line we used matrix derivative identity (\ref{eqn:derivative1}) and in the third line we used the symmetry of $\bs\Sigma^{-1}_k$.
+Solving for $\bs\mu_k$ gives us the following update formula
 \begin{equation}
-\begin{split}
 \label{eqn:gmmMu}
-\nabla_{\boldsymbol \mu_k} J &= \sum_{i=1}^N -\frac{1}{2}\gamma_k^{(i)} \nabla_{\boldsymbol \mu_k} (\boldsymbol x^{(i)} - \boldsymbol \mu_k)^T \boldsymbol \Sigma^{-1}(\boldsymbol x^{(i)} - \boldsymbol \mu_k)\\
-&= \sum_{i=1}^N -\frac{1}{2}\gamma_k^{(i)}(\boldsymbol \Sigma_k^{-1} + \boldsymbol \Sigma_k^{-T})(\boldsymbol \mu_k - \boldsymbol x^{(i)})\\
-&= \sum_{i=1}^N\gamma_k^{(i)} \boldsymbol \Sigma^{-1} (\boldsymbol x^{(i)} - \boldsymbol \mu_k) = 0\\
-\Rightarrow \boldsymbol \mu_k &= \frac{\sum_{i=1}^N\gamma_k^{(i)} \boldsymbol x^{(i)}}{\sum_{i=1}^N \gamma_k^{(i)}}
+\bs\mu_k^{\,(new)} = \frac{\sum_{i=1}^N\ol\gamma_k^{\,(i)} \bs x^{(i)}}{\sum_{i=1}^N \ol\gamma_k^{\,(i)}}
+\end{equation}
+
+Next, we would like to maximize $J$ with respect to $\bs\Sigma_k$.
+However, instead of taking the gradient with respect $\bs\Sigma_k$, it proves to be more convenient to take the gradient with respect to $\bs\Sigma_k^{-1}$ instead.
+\begin{equation}
+\begin{split}
+\nabla_{\bs \Sigma_k^{-1}}J &= \frac{1}{2}\sum_{i=1}^N \ol\gamma_k^{\,(i)}\nabla_{\bs\Sigma_k^{-1}}\left(\log \left|\bs \Sigma_k^{-1}\right| \right.\\
+&\qquad\quad\left. -\,(\bs x^{(i)} - \bs \mu_k)^T \bs\Sigma_k^{-1}(\bs x^{(i)} - \bs\mu_k\right)\\
+&=\frac{1}{2}\sum_{i=1}^N \ol\gamma_k^{\,(i)}\left(\bs \Sigma_k - (\bs x^{(i)} - \bs \mu_k)(\bs x^{(i)} - \bs \mu_k)^T\right)\\
 \end{split}
 \end{equation}
-To find the optimal $\boldsymbol \Sigma_k$, we note that this equivalent to finding $\boldsymbol \Sigma_k^{-1}$ that maximizes $J$:
+where we used matrix identities (\ref{eqn:derivative2}) and (\ref{eqn:derivative3}) and symmetry of $\bs\Sigma_k$.
+Setting the derivative to zero and rearranging for $\Sigma_k$ yields the update formula
 \begin{equation}
 \label{eqn:gmmSigma}
+\bs \Sigma_k^{\,(new)} = \frac{\sum_{i=1}^N \ol\gamma_k^{\,(i)}(\bs x^{(i)}-\bs\mu_k^{\,(new)})(\bs x^{(i)}-\bs\mu_k^{\,(new)})^T}{\sum_{i=1}^N \ol\gamma_k^{\,(i)}}
+\end{equation}
+Note that it is common to use the updated value $\bs\mu_k^{\,(new)}$ in the update formula for $\bs\Sigma$ as we have done here.
+
+Finally, when maximizing $J$ with respect to the mixing coefficents $\bs\pi$ we need to respect the constraint that $\pi_k \geq 0$ and $\sum_{k=1}^K \pi_k = 1$.
+For our specific optimization problem, the most straightforward approach is to ignore the inequality constraints $\pi_k\geq 0$, and use the method of Lagrange multipliers to solve the resulting problem. 
+
+Let $\lambda > 0$ denote the Lagrange multiplier of the equality constraint $\sum_{k=1}^K=1$.
+To find the optimal constraint coefficients $\pi_k$, the method performs the unconstrained optimization of $\left(J + \lambda(1-\sum_{k=1}^K \pi_k)\right)$ with respect to $\lambda$ and the $\pi_k$.
+Setting the derivative with respect to $\lambda$ to zero gives
+\begin{equation}
 \begin{split}
-\nabla_{\boldsymbol \Sigma_k^{-1}} J &= \sum_{i=1}^N \gamma_k^{(i)}(\frac{1}{2}\nabla_{\boldsymbol \Sigma_k^{-1}}(\log |\boldsymbol \Sigma_k^{-1}| - (\boldsymbol x^{(i)} - \boldsymbol \mu_k)^T \boldsymbol \Sigma_k^{-1}(\boldsymbol x^{(i)} - \boldsymbol \mu_k))\\
-&= \sum_{i=1}^N \gamma_k^{(i)} \frac{1}{2}(\boldsymbol \Sigma_k - (\boldsymbol x^{(i)} - \boldsymbol \mu_k)(\boldsymbol x^{(i)} - \boldsymbol \mu_k)^T) = 0\\
-\Rightarrow \boldsymbol \Sigma_k &= \frac{\sum_{i=1}^N \gamma_k^{(i)}(\boldsymbol x^{(i)} - \boldsymbol \mu_k)(\boldsymbol x^{(i)} - \boldsymbol \mu_k)^T}{\sum_{i=1}^N \gamma_k^{(i)}}
+\label{eqn:gmmPiConstraint}
+\frac{\partial}{\partial \lambda}\left(J + \lambda(1 - \sum_{k=1}^K \pi_k)\right) &= 1 - \sum_{k=1}^K \pi_k\\
+&= 0
 \end{split}
 \end{equation}
-The mixing coefficients $\boldsymbol \pi$ must satisfy the constraint $\sum_{k=1}^K \pi_k = 1$.
-We use the method of Lagrange multipliers to perform the constrained optimization.
-Let $\lambda > 0$ denote the Lagrange multiplier.
-To find the optimal coefficients $\pi_k$, we set the derivative of $(J(\boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma, \boldsymbol \gamma) + \lambda(1-\sum_{k=1}^K \pi_k))$ with respect to $\pi_k$ to zero.
+which is simply our initial sum-to-one constraint.
+Differentiating with respect to $\pi_k$, we get
+\begin{equation}
+\begin{split}
+\frac{\partial}{\partial \pi_k}\left(J + \lambda(1 - \sum_{k=1}^K \pi_k)\right) &= \left(\sum_{i=1}^N\ol\gamma_k^{\,(i)} \frac{\partial}{\partial \pi_k} \log \pi_k\right) - \lambda\\
+&= \left(\sum_{i=1}^N \frac{\ol\gamma_k^{\,(i)}}{\pi_k}\right) - \lambda \\
+\end{split}
+\end{equation}
+Setting the derivative to zero and solving for $\pi_k$ gives us
 \begin{equation}
 \label{eqn:gmmPi1}
-\begin{split}
-\frac{\partial}{\partial \pi_k}(J + \lambda(1 - \sum_{k=1}^K \pi_k)) &= \sum_{i=1}^N\gamma_k^{(i)} \frac{\partial}{\partial \pi_k} \log \pi_k - \lambda\\
-&= \sum_{i=1}^N \frac{\gamma_k^{(i)}}{\pi_k} - \lambda = 0\\
-\Rightarrow \pi_k = \frac{\sum_{i=1}^N\gamma_k^{(i)}}{\lambda}
-\end{split}
+\pi_k = \frac{\sum_{i=1}^N\ol\gamma_k^{\,(i)}}{\lambda}
 \end{equation}
-Taking the sum over $k$ on both sides gives
+Next, we note that $\sum_{k=1}^N \ol\gamma_k^{\,(i)} = 1$ due to their probabilistic nature (\ref{eqn:gmmresponsibility}).
+Taking the sum over $k$ on both sides of (\ref{eqn:gmmPi1}) and making use of the sum-to-one constraint (\ref{eqn:gmmPiConstraint}) therefore gives us
 \begin{equation}
 \label{eqn:gmmPi2}
 \begin{split}
-1 &= \frac{\sum_{i=1}^N \sum_{k=1}^K \gamma_k^{(i)}}{\lambda}\\
-\Rightarrow \lambda &= \sum_{i=1}^N \sum_{k=1}^K \gamma_k^{(i)}\\
-&= \sum_{i=1}^N 1 = N
+1 &= \frac{\sum_{k=1}^K \sum_{i=1}^N \ol\gamma_k^{\,(i)}}{\lambda}\\
+\Rightarrow \lambda &= \sum_{i=1}^N \sum_{k=1}^K \ol\gamma_k^{\,(i)}\\
+&= \sum_{i=1}^N 1 \\
+&= N
 \end{split}
 \end{equation}
-Since $\sum_{k=1}^K \gamma_k^{(i)} = \sum_{k=1}^K p(z^{(i)} = k\,|\,\boldsymbol x^{(i)}) = 1$.
-Thus,
+Hence, we get the following update formulae for $\bs\pi$
 \begin{equation}
-\pi_k = \frac{\sum_{i=1}^N \gamma_k^{(i)}}{N}.
-\label{eqn:gmmPi3}
+\label{eqn:gmmPi}
+\pi_k^{\,(new)} = \frac{\sum_{i=1}^N \ol\gamma_k^{\,(i)}}{N}.
 \end{equation}
+This completes the M-step of the EM algorithm.
+We have summarized the EM algorithm for Gaussian mixture models in Algorithm \ref{alg:gmm}.
 
-\subsection{Model Selection in the Gaussian mixture model}
-It is possible for the EM algorithm to get stuck in local optima.
-The approach of dealing with this problem is analogous to the one used in the K-Means algorithm:
-We perform multiple runs of the EM algorithm with different random initializations of the GMM parameters. We then pick the result for which the log likelihood was greatest.
+\begin{algorithm}
+\caption{EM algorithm for GMMs}
+\label{alg:gmm}
+\begin{algorithmic}[1]
+\State Initialize $\bs\pi^{\,(current)}$, $\bs\mu^{\,(current)}$ and $\bs\Sigma^{\,(current)}$
+\Statex\Repeat
+\Statex \quad\, E-Step:
+\For{$i = 1,\dots,N$}
+\For{$k=1,\dots,K$}
+\State Set $\gamma_k^{(i)} = \frac{\pi_k^{\,(current)}\mathcal{N}(\bs x^{(i)}|\,\bs\mu_k^{\,(current)}, \bs\Sigma_k^{\,(current)})}{\sum_{j=1}^K \pi_j^{\,(current)}\mathcal{N}(\bs x^{(i)}|\,\bs\mu_j^{\,(current)}, \bs\Sigma_j^{\,(current)})}$
+\EndFor
+\EndFor
+\Statex\Statex \quad\, M-Step:
+\For{$k = 1,\dots,K$}
+\State Set $N_k = \sum_{i=1}^N \gamma_k^{(i)}$
+\State Set $\pi_k^{\,(new)} = \frac{N_k}{N}$
+\State Set $\bs\mu_k^{\,(new)} = \frac{1}{N_k}\sum_{i=1}^N \gamma_k^{(i)} \bs x^{(i)}$
+\State Set $\bs\Sigma_k^{\,(new)} $
+\Statex \qquad \qquad $=\frac{1}{N_k}\sum_{i=1}^N \gamma_k^{(i)}(\bs x^{(i)} - \bs\mu_k^{\,(new)})(\bs x^{(i)} - \bs\mu_k^{\,(new)})^T$
+\Statex\State Update $\bs\pi^{\,(current)} = \bs\pi^{\,(new)}$, $\bs\mu^{\,(current)} = \bs\mu^{\,(new)}$
+\Statex \qquad\qquad and $\bs\Sigma^{\,(current)} = \bs\Sigma^{\,(new)}$
+\EndFor
+\Until{Convergence}
+\Statex\State\Return $\gamma^{(i)}_k$, $\pi_k$, $\bs\mu_k$, $\bs\Sigma_k$, \quad $i=1,\dots,N$, $k=1,\dots,K$
+\end{algorithmic}
+\end{algorithm}
 
-In order to choose $K$, we may again employ the ``elbow method'', by plotting the negative log likelihood against $K$.
-Another popular approach is the use information theoretic model selection criteria such as the \emph{Akaike Information Criterion (AIC)}, the \emph{Bayesian Information Criterion (BIC)} or the \emph{Kullbeck-Leibler Information Criterion (KLIC)}.
-It is also possible to embed the GMM in a Bayesian framework by putting prior probabilities on our model parameters.
-For instance, we could put a Gaussian-Inverse-Wishart prior on the cluster means and covariances and a Dirichlet prior on the mixing coefficients.
-These priors are conjugate to our likelihood function and thus lead to fast computation of the posterior probabilities of the parameters. \emph{(CHECK THIS)}.
-\emph{COMMENT: how is this used for model selection?}
+In the context of clustering, there is an intuitive interpretation for the model parameters.
+We have already discussed the role of the responsibility $\gamma_k^{(i)}$ as a soft assignment of sample $\bs x^{(i)}$ to cluster $k$.
+These are analoguous to hard assignment indicator functions $\id\{z^{(i)}=k\}$ that were used in the $K$-means algorithm.
+
+The quantity
+\begin{equation}
+\label{eqn:gmmclustersize}
+N_k = \sum_{i=1}^N \gamma_k^{(i)}
+\end{equation}
+can be interpreted as the \emph{effective size} of cluster $k$.
+
+With these interpretations of $\gamma_k^{(i)}$ and $N_k$, it is natural to view $\bs\mu_k$ as the mean of cluster $k$ and $\bs\Sigma_k$ as its variance, measuring the spread of the data belonging to cluster $k$.
+
+
 
 \subsection{KMeans as limit of GMM}
-We can derive the K-Means algorithm as a special case of the EM algorithm for the Gaussian Mixture Model.
-Let is fix $\pi_k = 1/K$ and $\boldsymbol \Sigma_k = \sigma^2 \boldsymbol I_D$ for all values of $k$.
-Further, let us approximate the responsibilities by delta functions
+We have already seen the similiraty between the formula for the mean parameters $\bs\mu_k$ in the GMM (\ref{eqn:gmmMu}) and the formula for the cluster centroids in the $K$-means algorithm (\ref{eqn:kmeans-M}).
+It is in fact possible to derive the $K$-means algorithm as a special case of the Gaussian mixture model.
+
+To show how, let us fix 
+\begin{equation}
+\pi_k = \frac{1}{K}
+\end{equation}
+and 
+\begin{equation}
+\bs\Sigma_k = \sigma^2 \bs I_D
+\end{equation}
+for all values of $k$, where $\sigma^2$ is a fixed positive scalar and we used $\bs I_D$ to denote the $D\times D$ identity matrix. 
+
+Further, let us approximate the responsibilities by indicator functions
 \begin{equation}
 \label{eqn:gmmdelta}
-\gamma_k^{(i)} = \mathbbm{1}\{z^{(i)} = k^*\}
+\gamma_k^{(i)} = \id\{z^{(i)} = k^*\}
 \end{equation}
 where
 \begin{equation}
-k^* = \argmax_k p(z^{(i)} = k\,|\,\boldsymbol x^{(i)},\boldsymbol \pi, \boldsymbol \mu, \boldsymbol \Sigma)
+k^* = \argmax_k \gamma_k^{(i)}.
 \end{equation}
-is the MAP estimate of $z^{(i)}$.
-Due to the spherical covariance matrix, $k^*$ will be simply equal to the identity of the currently closest cluster centroid to $\boldsymbol x^{(i)}$. This completes the E-step.
+This turns our soft cluster assignments into hard assignments.
 
-In the M-Step, we only need to update the cluster means $\boldsymbol \mu_k$.
-Using our approximations for $\gamma_k^{(i)}$, the GMM update formula for $\boldsymbol \mu_k$ reduces to the one we used in the K-Means algorithm, i.e. the empirical mean of all data points currently assigned to cluster $k$.
+Due to the spherical covariance matrix $\sigma^2 \bs I_D$, the cluster $k$ whose mean parameter $\bs\mu_k$ is closest to $\bs x^{(i)}$ will hold the largest responsibility in explaining sample $i$.
+Thus, $k^*$ will be set to the identity of the cluster that is closest to $\boldsymbol x^{(i)}$.
+This gives us the cluster assignment step of the $K$-means algorithm (\ref{eqn:kmeans-E}).
 
-For more info, see \cite{Bishop} and \cite{Murphy}.
+Next, we need to update the cluster means $\boldsymbol \mu_k$.
+Using our approximations for $\gamma_k^{(i)}$, the GMM update formula for $\boldsymbol \mu_k$ reduces to 
+\begin{equation}
+\begin{split}
+\bs \mu_k &= \frac{\sum_{i=1}\gamma_l^{(i)} \bs x^{(i)}}{\sum_{i=1}^N \gamma_k^{(i)}}\\
+&= \frac{\sum_{i=1}^N \id\{z^{(i)}=k\} \bs x^{(i)}}{\sum_{i=1}^N \id\{z^{(i)} = k\}}
+\end{split}
+\end{equation}
+giving us the same update formula that was used in the K-Means algorithm (\ref{eqn:kmeans-M}).
 
-\section{Extensions and Further Work}
-Conclusion.
+We see that the $K$-means algorithm is also just an instance of the EM algorithm.
+
+\subsection{Model Selection in the Gaussian mixture model}
+Similar to the $K$-means algorithm, the only input parameter in the Gaussian mixture model is the number of clusters $K$.
+Thus, model selection in the context of the GMM is about selecting the optimal number of mixture components.
+
+A simple model selection tool is the ``elbow method''.
+We have already discussed this method in section \ref{sect:kmeans-ms} in the context about $K$-means.
+Instead of the distortion function, we plot the negative value of the log likelihood $-\ell(\bs\theta)$ at the optimum parameter value of $\bs\theta$ against $K$ and try to identify a ``kink".
+Of course, this approach comes with the same drawbacks that were discussed earlier.
+
+Alternatively, we can make use of statistical model selection tools.
+A simple practical approach is to fit the GMM for a range of values of $K$ and evaluate the \emph{Bayesian Information Criterion} (BIC) for each of the models.
+We then select the value of $K$ for which the BIC was lowest (see \cite{fraley2002} for more details).
+
+In general, model selection for finite mixture models is a difficult problem and virtually all model selection tools have significant drawbacks. 
+One way of circumventing the problem is to make the move to Bayesian non-parametric models that allow for automatic inference of the number of clusters.
+A popular approach to non-parametric clustering is to use the Dirichlet process mixture model.
+
+For more information on model selection in mixture models, see \cite{Murphy}.
+
+\subsection{Implementation Details and Demonstration}
+Beside the $K$-means algorithm, we have also implemented the Gaussian mixture model in C++ (using Armadillo \cite{armadillo}).
+Again, implementation of the pseudo-code from Algorithm \ref{alg:gmm} is relatively straight-forward.
+The only additions that we made are
+\begin{enumerate}
+\item We added an upper limit to the number of iterations of the EM algorihtm.
+\item We used a mixed error test as convergence criterion.
+This means that we stop the algorithm if
+\begin{equation}
+|\ell(\bs\theta^{\,(new)}) - \ell(\bs\theta^{\,(current)})| < \epsilon \left(1 + |\ell(\bs\theta^{\,(current)})|\right)
+\end{equation}
+where $\epsilon > 0$ is the target error.
+\item Similar to $K$-means, we perform multiple runs of the EM algorithm with different random initializations to mitigate the risk of getting a poor local solution.
+\end{enumerate}
+
+Possible demo:
+\begin{itemize}
+\item density estimation
+\item anomaly detection
+\item MNIST
+\end{itemize}
+
+%Once we have formed the density $p(\boldsymbol x)$, we can apply the model to the problem of \emph{anomaly detection}.
+%Given a new observation $\boldsymbol x^{(N+1)}$, we flag it as an anomaly if $p(\boldsymbol x^{(N+1)}) < \epsilon$, where $\epsilon > 0$ is a pre-defined threshold.
+
+
+%\subsection{Extensions and generalizations}
+
+
+\section{Further Work}
+\label{sect:concl}
+\begin{itemize}
+\item Online versions
+\item Alternative inference methods
+\item Bayesian parametric setting
+\item Bayesian non-parametric setting
+\end{itemize}
+
 
 \section*{Acknowledgements}
 Here I acknowledge the assistance of my supervisor, my industrial sponsor,
