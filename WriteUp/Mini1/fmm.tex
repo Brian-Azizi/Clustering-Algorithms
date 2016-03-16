@@ -125,7 +125,10 @@
   Avenue, Cambridge. CB3 0HE}
 
 \begin{abstract}
-Abstract.
+With the accelerating amount of unstructed information in the world, unsupervised machine learning gains in importantance.
+Clustering is one of the main tools for knowledge discovery within machine learning.
+This paper provides a summary of $K$-means clustering and the Gaussian mixture model, two of the most widely used clustering techniques.
+We will describe our implementation of the methods and give a detailed derivation of their theoretical foundation.
 \end{abstract}
 
 \end{frontmatter}
@@ -138,9 +141,26 @@ Abstract.
 %% main text
 \section{Introduction}
 \label{sect:Intro}
-Intro.
+The goal of \emph{clustering} (also known as \emph{cluster analysis}) is to divide a set of data points into different clusters such that data points withing the same cluster are similar to each other and dissimilar to data points in different clusters. 
+When faced with an unlabeled and high-dimensional data set, performing a cluster analysis can give us a few useful initial insights into the underlying system.
+
+Due its general use as a tool for knowledge discovery, clustering has found practical applications in range of disciplines.
+In Biology, and particularly in genetic cluster analysis, clustering methods have been used to infer structures in genetic population.
+Clustering has become a common tool in market research, allowing for automatic market segmentation.
+More recently, text clustering has been used by Google News to aggregate reports on a particular news story from many different publications.
+Another common use of clustering is in methods of automatic image segmentation. Important applications of image segmentation include medical imaging and machine vision.
+
+This paper introduces two of the most widely used approaches to clustering, the $K$-means algorithm and the \emph{Gaussian mixture model}.
+We have provided a general discussion and derivation of both methods as well as a description of their implementation.
+
+We begin in section \ref{sect:kmeans} by describing and deriving the standard $K$-means algorithm.
+Section \ref{sect:EM} gives an abstract description of mixture models and latent variable models in general.
+It also derives the expectation-maximization algorithm which is one of the most important tools in machine learning.
+We then give a treatment of Gaussian mixture models in section \ref{sect:gmm}.
+Finally, we discuss extensions and conclude in section \ref{sect:concl}.
 
 \section{$K$-Means Clustering}
+\label{sect:kmeans}
 In this section we introduce the \emph{$K$-Means algorithm} \cite{lloyd1982}.
 It is one of the simplest and most intuitive approaches to clustering.
 The algorithm requires only a single parameter to be set, namely the number of desired clusters $K$. 
@@ -983,23 +1003,42 @@ Possible demo:
 %Once we have formed the density $p(\boldsymbol x)$, we can apply the model to the problem of \emph{anomaly detection}.
 %Given a new observation $\boldsymbol x^{(N+1)}$, we flag it as an anomaly if $p(\boldsymbol x^{(N+1)}) < \epsilon$, where $\epsilon > 0$ is a pre-defined threshold.
 
-
 %\subsection{Extensions and generalizations}
 
 
-\section{Further Work}
+\section{Conclusion and Further Work}
 \label{sect:concl}
-\begin{itemize}
-\item Online versions
-\item Alternative inference methods
-\item Bayesian parametric setting
-\item Bayesian non-parametric setting
-\end{itemize}
+The EM algorithm is one of the most important techniques in machine learning and statistics.
+As such, many extensions and variations of it have been proposed in the literature.
+\cite{Murphy} gives a short description of several extensions of EM, while \cite{mclachlan1997} offers a more in-depth treatment.
 
+An important extension is \emph{online EM}.
+We discussed the EM algorithm in the context of \emph{batch learning}. 
+However, when dealing with large data sets, this can be very slow, since the algorithm needs to go through the entire data set in order to produce a single parameter update.
+The main alternative to batch learning is \emph{online learning}. 
+In online learning algorithms, each iteration considers only a single data point in order to update the parameters.
+In practice, this can lead to significant speedups.
 
-\section*{Acknowledgements}
-Here I acknowledge the assistance of my supervisor, my industrial sponsor,
-and the effects of caffine on my ability to produce this report on time.
+There are two main variants of an online version of the EM algorithm.
+They are known as \emph{incremental EM} and \emph{stepwise EM} and are discussed in \cite{liang2009}.
+
+We showed how the EM algorithm can be used to fit latent variable models.
+In particular, we derived the EM algorithm for the Gaussian mixture model and $K$-means.
+
+Both, $K$-means and Gaussian mixtures play an important role in unsupervised machine learning.
+They offer simple and intuitive approaches to clustering and are straightforward to implement.
+Typically, they are included in any major machine learning software package.
+In practice, this makes them a good ``first thing to try" in a wide range of clustering problems.
+
+There a various ways in which the two models can be extended and generalized.
+For instance, the \emph{elliptical $K$-means} algorithm \cite{sung1998} offers a hard-assignment version of the GMM with general covariance matrices.
+
+Other extensions to the GMM seek to find better ways of infering the parameters of the model, for instance through Markov Chain Monte Carlo methods.
+
+However, as we said before, the biggest limitations of finite mixture models is that we need to manually set the number of components $K$.
+Model selection methods are fraught with difficulties and so it may be beneficial to use Bayesian nonparametric approaches to clustering that automatically infer the number of clusters.
+The most widely used of these methods is the Dirichlet process mixture model. 
+For more information, see \cite{Murphy, Teh2010a}.
 
 %% The Appendices part is started with the command \appendix;
 %% appendix sections are then done as normal sections
