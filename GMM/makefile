@@ -9,4 +9,4 @@ gmm.o : gmm.cpp gmm.h
 	g++ -c gmm.cpp -o gmm.o -L/lsc/opt/armadillo-6.100/lib -I/lsc/opt/armadillo-6.100/include -larmadillo -O3 -pedantic -Wall -Wextra
 
 clean :
-	rm mainGMM.o gmm.o GMM
+	rm mainGMM.o gmm.o GMM MU.out SIGMA.out PI.out GAMMA.out logL_hist.out

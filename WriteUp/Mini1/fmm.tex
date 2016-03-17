@@ -963,6 +963,15 @@ We see that the $K$-means algorithm is also just an instance of the EM algorithm
 Similar to the $K$-means algorithm, the only input parameter in the Gaussian mixture model is the number of clusters $K$.
 Thus, model selection in the context of the GMM is about selecting the optimal number of mixture components.
 
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth,height=3in]{gmmdemo.png}
+\caption{Illustration of GMM on the 2d data set from Figure \ref{fig:kmeans-prog} with $K=3$. 
+(a) Plot of the cluster means and variances indicated with ellipses. We have added a potention anomaly at $\bs x_{test}$. 
+(b) Surface plot of the estimated density function $p(\bs x)$.}
+\label{fig:gmm-demo}
+\end{figure*}
+
 A simple model selection tool is the ``elbow method''.
 We have already discussed this method in section \ref{sect:kmeans-ms} in the context about $K$-means.
 Instead of the distortion function, we plot the negative value of the log likelihood $-\ell(\bs\theta)$ at the optimum parameter value of $\bs\theta$ against $K$ and try to identify a ``kink".
@@ -979,8 +988,9 @@ A popular approach to non-parametric clustering is to use the Dirichlet process 
 For more information on model selection in mixture models, see \cite{Murphy}.
 
 \subsection{Implementation Details and Demonstration}
+
 Beside the $K$-means algorithm, we have also implemented the Gaussian mixture model in C++ (using Armadillo \cite{armadillo}).
-Again, implementation of the pseudo-code from Algorithm \ref{alg:gmm} is relatively straight-forward.
+Again, implementing of the pseudo-code from Algorithm \ref{alg:gmm} is relatively straight-forward.
 The only additions that we made are
 \begin{enumerate}
 \item We added an upper limit to the number of iterations of the EM algorihtm.
@@ -993,17 +1003,20 @@ where $\epsilon > 0$ is the target error.
 \item Similar to $K$-means, we perform multiple runs of the EM algorithm with different random initializations to mitigate the risk of getting a poor local solution.
 \end{enumerate}
 
-Possible demo:
-\begin{itemize}
-\item density estimation
-\item anomaly detection
-\item MNIST
-\end{itemize}
+Figure \ref{fig:gmm-demo} illustrates the use of GMM.
+We applied the model to the same data set as in Figure \ref{fig:kmeans-prog} with $K=3$.
+The resulting clusters are shown in panel (a), where we used ellipses to indicate the covariance parameters.
+Panel (b) shows a surface plot of the estimated density function $p(\bs x)$.
 
-%Once we have formed the density $p(\boldsymbol x)$, we can apply the model to the problem of \emph{anomaly detection}.
-%Given a new observation $\boldsymbol x^{(N+1)}$, we flag it as an anomaly if $p(\boldsymbol x^{(N+1)}) < \epsilon$, where $\epsilon > 0$ is a pre-defined threshold.
+We also show how the Gaussian mixture model can be applied to \emph{anomaly detection}.
+In panel (a), we have included a potential anomaly at the point marked as $\bs x_{test}$.
+Once we have an estimate for $p(\bs x)$, we can evaluate it at $\bs x_{test}$.
+We flag $\bs x_{test}$ as an anomaly if 
+\begin{equation*}
+p(\bs x_{test}) < \epsilon
+\end{equation*}
+where $\epsilon > 0$ as a preset threshold.
 
-%\subsection{Extensions and generalizations}
 
 
 \section{Conclusion and Further Work}

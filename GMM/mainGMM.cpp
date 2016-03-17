@@ -24,7 +24,10 @@ int main(int argc, char **argv)
   const arma::uword K = num_clusters;
   
   // A) Toy Data Set
-  char filename[] = "../data_files/toyclusters/toyclusters.dat";
+  //char filename[] = "datas/toyclusters.dat";
+  // B) Demo.dat
+  char filename[] = "datas/demo.dat";
+
   X.load(filename);
   const arma::uword N = X.n_rows;
   const arma::uword D = X.n_cols;
@@ -39,8 +42,8 @@ int main(int argc, char **argv)
 
 
   // RUN EM ALGORITHM AND SEARCH FOR BEST LOCAL MAXIMUM
-  arma::uword numRuns = 20;
-  arma::uword maxIter = 100;
+  arma::uword numRuns = 5;
+  arma::uword maxIter = 350;
   arma::Mat<double> logL_hist(maxIter, 1);
   logL_hist = gmmBestLocalMax(X, K, numRuns, maxIter, MU, SIGMA, PI, GAMMA);
 
@@ -56,11 +59,11 @@ int main(int argc, char **argv)
 
 
   // SAVE OUTPUT
-  char MuFile[] = "../data_files/toyclusters/MU.out";
-  char SigmaFile[] = "../data_files/toyclusters/SIGMA.out";
-  char PiFile[] = "../data_files/toyclusters/PI.out";
-  char GammaFile[] = "../data_files/toyclusters/GAMMA.out";
-  char LogLFile[] = "../data_files/toyclusters/logL_hist.out";
+  char MuFile[] = "MU.out";
+  char SigmaFile[] = "SIGMA.out";
+  char PiFile[] = "PI.out";
+  char GammaFile[] = "GAMMA.out";
+  char LogLFile[] = "logL_hist.out";
   
   MU.save(MuFile, arma::raw_ascii);
   SIGMA.save(SigmaFile, arma::raw_ascii);
