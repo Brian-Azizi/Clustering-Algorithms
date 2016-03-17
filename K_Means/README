@@ -1,0 +1,31 @@
+K-means implementation for the Mini-project
+
+External libraries:
+armadillo v6.1
+
+Input files must are specified within main.cpp (using the variable "filename").
+It is assumed that input files contain only the data (N rows, D columns).
+
+Other parameters that are specified in main.cpp:
+The maximum number of iterations: "max_iter"
+The total number of runs of the algorithm: num_runs
+ 
+Compile the code using
+$ make
+
+To run the algorithm with K clusters, use
+$ ./kmeans K
+
+Output will be saved in the working directory:
+"idx.out" : contains the cluster identities
+"centroids.out": contains the cluster centroids
+
+Data files:
+"datas/toyclusters.dat" was used for Figures 1 and 2
+"datas/demo.dat" was used for Figure 3
+"imSeg/polar.dat" was used for Figure 4
+
+Figures were post-processed with matlab 
+An implementation of K-means can be found in "matlab_files" (uncommented as it is not part of the project)
+the script used for generating the plots is "matlab_files/mainKMEANS.m"
+Figures were edited using Inkscape 
