@@ -354,13 +354,23 @@ We then save the output of the run for which $J$ was smallest.
 As explained in section \ref{sect:kmeans-derivation}, this is done in order to mitigate the risk of getting a poor local optimum.
 \end{enumerate}
 
-Possible demo for $K$-means:
-\begin{itemize}
-\item Image compression
-\item MNIST data
-\end{itemize}
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth,height=3in]{polar.png}
+\caption{Illustration of $K$-means to image compression. Right: Original image. Left: Compressed image with $K=16$.}
+\label{fig:kmeans-image}
+\end{figure*}
 
+A common demonstration of the $K$-means algorithm is its application in image compression and image segmentation \cite{forsyth2002}.
+We treat each pixel of the image as an individual data point in 3 dimensions, where each dimension corresponds to one of the RGB colour channels.
+The $K$-means algorithm will cluster the pixels according to their colour.
+Once we have a clustering, we replace each pixel with the centroid of its assigned cluster.
+The resulting image is a compressed version of the original one and consists of only $K$ distinct colours.
 
+We have illustrated this approach in Figure \ref{fig:kmeans-image} on an example with the choice $K=16$.
+In general, smaller values of $K$ give a higher compression at the cost of poorer quality.
+
+\subsection{Extensions and generalizations}
 \label{sect:kmeans-concl}
 In the introduction, we said that we would like data points inside the same cluster to be similar to each other and dissimilar to data points in other clusters.
 

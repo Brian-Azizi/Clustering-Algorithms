@@ -1,36 +1,44 @@
-clear, clc, clf;
 
+% load Data
 X = load('demo.dat');
 [N, D] = size(X);
 
-maxK = 15;
-J = zeros(1,maxK);
 
-for K = 1:maxK
-maxIter = 200;
+% Set range of K for elbow curve
+K = 10;
+maxK = K;
+minK = K;
 
-initialCentroids = kMeansInitCentroids(X,K);
-%initialCentroids = [-1 6; 1 6; 8 0];
-[centroids, idx]  = runkMeans(X,initialCentroids,maxIter,false);
+J = zeros(1,maxK-minK+1);
 
-%figure(2);
-%subplot(2,2,1);
-%plotDataPoints(X,idx,K);
-%hold on;
-%plot(centroids(:,1), centroids(:,2), 'x', ...
-%     'MarkerEdgeColor','k', ...
-%     'MarkerSize', 10, 'LineWidth', 3);
-%axis off;
-dd = distortion(X,centroids,idx);
-%saveas(gcf,'local.png');
-J(K) = dd;
+for K = minK:maxK
+    maxIter = 200;
+
+    initialCentroids = kMeansInitialize(X,K);
+
+    [centroids, idx]  = runkMeans(X,initialCentroids,maxIter);
+
+    % Plot output for 2d data
+    if D == 2
+        figure(2);
+        gscatter(X(:,1),X(:,2),idx);
+        hold on;
+        plot(centroids(:,1), centroids(:,2), 'x', ...
+            'MarkerEdgeColor','k', ...
+            'MarkerSize', 10, 'LineWidth', 3);
+        %axis off;
+        dd = distortion(X,centroids,idx);
+        J(K) = dd;
+        hold off
+    end
+    pause;
 end
 
-figure(2);
-subplot(1,2,1);
-scatter(X(:,1),X(:,2),'.')
-%plotDataPoints(X,ones(N,1),1);
-axis off;
-subplot(1,2,2);
-plot(J)
-grid on;
+% plot Elbow curve and data for Figure 3
+% figure(3);
+% subplot(1,2,1);
+% scatter(X(:,1),X(:,2),'.')
+% axis off;
+% subplot(1,2,2);
+% plot(J)
+% grid on;

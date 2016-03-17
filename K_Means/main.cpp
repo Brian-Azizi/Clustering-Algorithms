@@ -29,7 +29,7 @@ int main(int argc, char **argv)
   const arma::uword K = num_clusters;
 
   // A) Toycluster Data
-  char filename[] = "../data_files/toyclusters/toyclusters.dat";
+  //char filename[] = "../data_files/toyclusters/toyclusters.dat";
   
   /*// B) Image Data: Lenna (256x256 pixels unrolled into rows, RGB values in columns)
   X.load("data_files/lenna/lenna_256x256x3.dat");
@@ -50,7 +50,9 @@ int main(int argc, char **argv)
   // D) MNIST
   //char filename[] = "../data_files/MNIST/MNISTreduced.dat";
 
-  
+  // E) Polar
+  char filename[] = "imSeg/polar.dat";
+
   X.load(filename);
   const arma::uword N = X.n_rows; // N = #examples
   const arma::uword D = X.n_cols; // D = #features
@@ -72,7 +74,7 @@ int main(int argc, char **argv)
 
   /* Set maximum number of iterations */
   arma::uword max_iter = 200;
-  arma::uword num_runs = 15;
+  arma::uword num_runs = 3;
 
   int seed = time(NULL);
   srand(seed);
