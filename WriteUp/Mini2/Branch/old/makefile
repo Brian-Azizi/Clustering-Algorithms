@@ -1,4 +1,4 @@
-X = dpmBranch
+X = dpm
 
 mini.pdf : $(X).tex references.bib
 	pdflatex $(X).tex
