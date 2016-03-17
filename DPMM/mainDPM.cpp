@@ -12,48 +12,9 @@ int main()
 {
   // LOAD DATA
   arma::mat X;
-
-  // A) Toy Data
-  //  char inputFile[] = "../data_files/toyclusters/toyclusters.dat";
-  
-  // B) X4.dat
-  //char inputFile[] = "./X4.dat";
-  
-  // C) fisher data
-  //char inputFile[] = "./fisher.dat";
-
-  // D) MNIST data
-  //char inputFile[] = "../data_files/MNIST/MNIST.dat";
-  
-  // E) Reduced MNIST (5000x400)
-  //char inputFile[] = "../data_files/MNIST/MNISTreduced.dat";
-  
-  // F) Reduced MNIST (0 and 1) (1000x400)
-  //char inputFile[] = "../data_files/MNIST/MNISTlittle.dat";
-
-  // G) Girl.png (512x768, RGB, already unrolled)
-  //char inputFile[] = "girl.dat";
-
-  // H) Pool.png (383x512, RGB, already unrolled)
-  //char inputFile[] = "pool.dat";
-
-  // I) Cat.png (733x490, RGB, unrolled)
-  //char inputFile[] = "cat.dat";
-  
-  // J) Airplane.png (512x512, RGB, unrolled)
-  //char inputFile[] = "airplane.dat";
-
-  // K) Monarch.png (512x768, RGB, unrolled)
-  //char inputFile[] = "monarch.dat";
-
-  // L) tulips.png (512x768 ,RGB, unrolled)
-  //char inputFile[] = "tulips.dat";
   
   // M) demo.dat (2d data)
-  //char inputFile[] = "demo.dat";
-
-  // N) brain.dat (712x614, RBG, unrolled)
-  char inputFile[] = "brain.dat";
+  char inputFile[] = "datas/demo.dat";
 
   // INITIALIZE PARAMETERS
   X.load(inputFile);
@@ -101,8 +62,6 @@ int main()
   // H(mu,sigma) = NIW(mu,Sigma|m_0,k_0,S_0,nu_0) = N(mu|m_0,Sigma/k_0)IW(Sigma|S_0,nu_0)
   arma::mat perturbation(D,D,arma::fill::eye);
   perturbation *= 0.000001;
-  //const arma::mat S_0 = arma::cov(X,X,1) + perturbation; // S_xbar / N
-  //  const arma::mat S_0(D,D,arma::fill::eye);
   const arma::mat S_0 = arma::diagmat(arma::cov(X,X,1)); // diag(S_xbar) / N
   const double nu_0 = D + 2;
   const arma::mat m_0 = mean(X).t();
@@ -227,9 +186,7 @@ int main()
       
       // sample fresh parameters
       arma::mat si_ = invWishRnd(S_Nk, nu_Nk);
-      //arma::mat si_ = S_Nk;
       arma::mat mu_ = mvnRnd(m_Nk, si_/k_Nk);
-      //arma::mat mu_ = m_Nk;
       mu.row(k) = mu_.t();
       sigma[k] = si_;
     }
@@ -262,17 +219,10 @@ int main()
   }
   arma::umat IDX = clusters;
 
-  // A) toycluster data
-  // char MuFile[] = "../data_files/toyclusters/dpmMU.out";
-  // char SigmaFile[] = "../data_files/toyclusters/dpmSIGMA.out";
-  // char IdxFile[] = "../data_files/toyclusters/dpmIDX.out";
-
-  // B) X4.dat
   char MuFile[] = "dpmMU.out";
   char SigmaFile[] = "dpmSIGMA.out";
   char IdxFile[] = "dpmIDX.out";
   std::ofstream chainKFile("chainK.out");
-  //std::ofstream KFile("K.out");
   
   MU.save(MuFile, arma::raw_ascii);
   SIGMA.save(SigmaFile, arma::raw_ascii);
@@ -285,9 +235,6 @@ int main()
   for (arma::uword sweep = 0; sweep < CHAINSIZE; ++sweep) {
     chainKFile << "Sweep #" << BURN_IN + sweep + 1 << "\n" << chain_K[sweep] << std::endl;
   }
-  // KFile << "K = " << K << std::endl; 
-  
-
 
   if (SAVE_CHAIN) {
     std::ofstream chainClustersFile("chainClusters.out");

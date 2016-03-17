@@ -3,7 +3,7 @@ K-means implementation for the Mini-project
 External libraries:
 armadillo v6.1
 
-Input files must are specified within main.cpp (using the variable "filename").
+Input files are specified within main.cpp (using the variable "filename").
 It is assumed that input files contain only the data (N rows, D columns).
 
 Other parameters that are specified in main.cpp:

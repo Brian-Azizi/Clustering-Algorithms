@@ -1,0 +1,31 @@
+Implementation of Gaussian mixture model for the Mini-project
+
+External libraries:
+armadillo v6.1
+
+Input files are specified within mainGMM.cpp (the variable "filename").
+It is assumed that input files are pure data files containing only numbers (N rows D columns)
+
+Other parameters to be set within mainGMM.cpp:
+"numRuns": total number of runs of the EM algorithm
+"maxIter": maximum iteration count for a run of EM
+
+Compile the code with
+$ make
+
+Run GMM with K clusters with
+$ ./GMM K
+
+Output will be saved in the working directory:
+MU.out - contains mean parameters of the clusters
+SIGMA.out - contains covariance matrices
+PI.out - contains mixture coefficients
+GAMMA.out - contains responsibilities
+logL_hist.out - contains history of log likelihood for the best run of the EM
+
+
+Data files:
+datas/toyclusters.dat - used for Figure 7
+postprocessing with Matlab
+matlabGmmFiles/ - contains a matlab implementation of GMM and post-processing script that generated Figure 7.
+Figures edited with Inkscape

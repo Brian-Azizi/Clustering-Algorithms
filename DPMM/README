@@ -1,0 +1,43 @@
+Implementation of Dirichlet process mixture model with Gaussian likelihood and normal-inverse-wishart prior
+
+External libraries:
+armadillo v6.1
+
+Requires C++11
+
+Input files are specified in mainDPM.cpp ("inputFile" variable).
+
+Other parameters to be set within mainDPM.cpp
+initial_K - initial number of clusters
+alpha - concentration parameter
+S_0, nu_0, m_0, k_0 - prior hyperparameters
+NUM_SWEEPS - number of Gibbs sampler iterations
+BURN_IN - burn-in for Gibbs sampler
+SAVE_CHAIN - boolean. Set true to save entire markov chain. 
+
+Compile with
+$ make
+
+Run with
+$ ./DPM
+
+Output will be saved in working directory:
+dpmMU.out - contains final sample of cluster means
+dpmSIGMA.out - contains final sample of cluster covariances
+dpmIDX.out - contains final cluster assignments
+chainK.out - contains Markov chain samples of K
+
+if SAVE_CHAIN is set to true, we additionally output the samples of the entire markov chain (minus the burn-in):
+chainClusters.out
+chainClusterSizes.out
+chainMu.out
+chainSigma.out
+
+Data files:
+datas/demo.dat - data used for Figures 7, 8 and 9
+Postprocessing scripts used are in demo/iter and demo/size
+
+datas/monarch.dat - data used for Figure 10. Postprocessed with tests/DPMquantization.m
+
+figures were edited with inkscape
+
